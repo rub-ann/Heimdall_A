@@ -13,6 +13,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 
@@ -51,9 +52,17 @@ fun AppDetailScreen(packageName: String, onDismissRequest: () -> Unit) {
     ) {
         LazyColumn(
             modifier = Modifier
-                .padding(it)
-                .fillMaxSize()
+                    .padding(it)
+                    .fillMaxSize()
         ) {
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            item {
+                ScoreCard(pkgInfo = pkgInfo, pm = pm)
+            }
 
             item {
                 Spacer(modifier = Modifier.height(8.dp))
