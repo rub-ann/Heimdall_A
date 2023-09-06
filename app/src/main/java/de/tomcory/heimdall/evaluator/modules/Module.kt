@@ -1,16 +1,18 @@
 package de.tomcory.heimdall.evaluator.modules
 
+import de.tomcory.heimdall.evaluator.SubScore
 import de.tomcory.heimdall.persistence.database.entity.SubScore
 import timber.log.Timber
 
-abstract class Module {
+abstract class Module constructor(){
 
-    abstract val name: String;
+    open abstract val name: String;
 
     open val defaultWeight:Double = 1.0;
 
-    fun calculate(): Result<SubScore> {
-        val score:Double = 1.0;
-        return Result.success(SubScore(this.name, this.defaultWeight, score))
+    abstract fun calculate(): Result<SubScore>;
+
+    override fun toString(): String {
+        return this.name
     }
 }

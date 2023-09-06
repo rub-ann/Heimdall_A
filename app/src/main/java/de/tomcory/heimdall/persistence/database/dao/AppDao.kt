@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import de.tomcory.heimdall.persistence.database.entity.App
 
 @Dao
@@ -16,4 +17,5 @@ interface AppDao {
 
     @Query("SELECT * FROM App")
     suspend fun getAll(): List<App>
+
 }
