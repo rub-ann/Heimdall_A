@@ -4,6 +4,7 @@ import android.content.pm.PackageInfo
 import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.evaluator.modules.StaticPermissionsScore
 import de.tomcory.heimdall.evaluator.modules.TrackerScore
+import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.Report
 import timber.log.Timber
 
@@ -41,15 +42,15 @@ object Evaluator {
 
         }
         val totalScore = scores.fold(0.0){sum, s -> sum + s.score * s.weight} / n
-        Timber.d("total score for ${app.packageName}: $totalScore}")
+        Timber.d("evaluation complete for ${app.packageName}: $totalScore}")
         createReport(app.packageName, totalScore, scores)
     }
 
 
     private suspend fun createReport(packageName:String, totalScore: Double, subScores: List<SubScore>){
         val report = Report(packageName = packageName, timestamp = System.currentTimeMillis(), mainScore = totalScore)
-        Timber.d("Report for $packageName:\n $report")
-        //HeimdallDatabase.instance?.reportDao?.insertReport(report)
+        Timber.d("$report")
+        HeimdallDatabase.instance?.reportDao?.insertReport(report)
         //HeimdallDatabase.instance?.appXReportDao?.insert(AppXReport(packageName, report.reportId))
     }
 }
