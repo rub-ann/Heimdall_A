@@ -39,6 +39,11 @@ fun DatabaseScreen(
         }
         Text(text = "Database contains ${responses.size} responses.")
 
+        val reports by viewModel.reports?.collectAsState(initial = emptyList()) ?: remember {
+            mutableStateOf(emptyList())
+        }
+        Text(text = "Database contains ${reports.size} score reports.")
+
 //        LazyColumn {
 //            items(requests) {
 //                RequestEntry(it)

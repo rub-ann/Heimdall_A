@@ -61,4 +61,7 @@ message Preferences {
   repeated string scan_whitelisted_apps = 21;
   // list of blacklisted package names for the ScanManager
   repeated string scan_blacklisted_apps = 22;
+
+  // indicates whether apps are evaluated on scan
+  bool scan_evaluator_enable = 23;
 }

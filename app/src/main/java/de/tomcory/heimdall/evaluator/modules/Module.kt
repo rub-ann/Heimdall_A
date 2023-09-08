@@ -1,7 +1,6 @@
 package de.tomcory.heimdall.evaluator.modules
 
 import de.tomcory.heimdall.evaluator.SubScore
-import de.tomcory.heimdall.persistence.database.entity.SubScore
 import timber.log.Timber
 
 abstract class Module constructor(){

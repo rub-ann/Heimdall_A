@@ -5,13 +5,18 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Relation
 
-class AppXReport {
-    data class AppWithReports(
-            @Embedded val app: App,
-            @Relation(
-                    parentColumn = "packageName",
-                    entityColumn = "reportId",
-            )
-            val reports: List<Report>
-    )
-}
+@Entity(primaryKeys = ["packageName", "reportId"])
+data class AppXReport(
+    @ColumnInfo(index = true)
+    var packageName: String,
+    @ColumnInfo(index = true)
+    val reportId: Int
+)
+data class AppWithReports(
+        @Embedded val app: App,
+        @Relation(
+                parentColumn = "packageName",
+                entityColumn = "reportId",
+        )
+        val reports: List<Report>
+)

@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import de.tomcory.heimdall.MonitoringScopeApps
 import de.tomcory.heimdall.MonitoringScopeApps.*
+import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.ui.main.preferencesStore
@@ -18,7 +19,8 @@ import timber.log.Timber
 
 class ScanManager private constructor(
     private val permissionScanner: PermissionScanner,
-    private val libraryScanner: LibraryScanner?
+    private val libraryScanner: LibraryScanner?,
+    private val evaluator: Evaluator
 ) {
     suspend fun scanApp(context: Context, packageName: String) {
         Timber.d("Collecting app info of $packageName")
@@ -65,6 +67,9 @@ class ScanManager private constructor(
         }
         if(dataStore.scanLibraryScannerEnable) {
             libraryScanner?.scanApp(packageInfo)
+        }
+        if(dataStore.scanEvaluatorEnable) {
+            evaluator.evaluateApp(packageInfo)
         }
     }
 
@@ -123,6 +128,13 @@ class ScanManager private constructor(
                     Timber.e(e, "Error scanning dex classes of ${it.packageName}")
                 }
             }
+            if(dataStore.scanEvaluatorEnable) {
+                try {
+                    evaluator?.evaluateApp(it)
+                } catch (e: Exception) {
+                    Timber.e(e, "Error evaluating score for ${it.packageName}")
+                }
+            }
 
             progressValue += progressStep
             progress?.emit(progressValue)
@@ -145,7 +157,8 @@ class ScanManager private constructor(
                 permissionScanner = PermissionScanner(),
                 libraryScanner = LibraryScanner.create(
                     context.preferencesStore.data.first().scanLibraryScannerPrepopulate
-                )
+                ),
+                evaluator = Evaluator
             )
         }
 
