@@ -6,7 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import de.tomcory.heimdall.persistence.database.entity.Report
-import de.tomcory.heimdall.persistence.database.entity.Response
 import kotlinx.coroutines.flow.Flow
 
 @Dao

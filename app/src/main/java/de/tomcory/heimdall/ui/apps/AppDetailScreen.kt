@@ -13,13 +13,20 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import de.tomcory.heimdall.persistence.database.HeimdallDatabase
+import de.tomcory.heimdall.persistence.database.entity.Report
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppDetailScreen(packageName: String, onDismissRequest: () -> Unit) {
+fun AppDetailScreen(
+    viewModel: AppDetailViewModel = hiltViewModel(),
+    navigateToUpdateBookScreen: (bookId: Int) -> Unit,
+    packageName: String, onDismissRequest: () -> Unit){
+    val report by viewModel.reports.collectAsState(
+        initial = emptyList()
+    )
     val context = LocalContext.current
     val pm = context.packageManager
     val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -52,8 +59,8 @@ fun AppDetailScreen(packageName: String, onDismissRequest: () -> Unit) {
     ) {
         LazyColumn(
             modifier = Modifier
-                    .padding(it)
-                    .fillMaxSize()
+                .padding(it)
+                .fillMaxSize()
         ) {
 
             item {
@@ -61,7 +68,9 @@ fun AppDetailScreen(packageName: String, onDismissRequest: () -> Unit) {
             }
 
             item {
-                ScoreCard(pkgInfo = pkgInfo, pm = pm)
+                if (report != null) {
+                    ScoreCard(report = report)
+                }
             }
 
             item {
@@ -81,4 +90,8 @@ fun AppDetailScreen(packageName: String, onDismissRequest: () -> Unit) {
             }
         }
     }
+    if (report == null){
+        RescanFloatingActionButton()
+    }
 }
+
