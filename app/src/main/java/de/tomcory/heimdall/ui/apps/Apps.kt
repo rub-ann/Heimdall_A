@@ -58,7 +58,7 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<App>) {
                     onDismissRequest = { showAppDetailDialog = false },
                     properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {
-                    AppDetailScreen(packageName = it.packageName, onDismissRequest = { showAppDetailDialog = false })
+                    NewAppDetailScreen(packageName = it.packageName, onDismissRequest = { showAppDetailDialog = false })
                 }
             }
         }
