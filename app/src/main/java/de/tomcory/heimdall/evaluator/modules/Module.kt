@@ -1,18 +1,17 @@
 package de.tomcory.heimdall.evaluator.modules
 
 import android.content.Context
-import android.content.pm.PackageManager
 import de.tomcory.heimdall.evaluator.SubScore
 import androidx.compose.runtime.Composable
 import de.tomcory.heimdall.persistence.database.entity.App
 
 abstract class Module constructor(){
 
-    open abstract val name: String;
+    abstract val name: String
 
-    open val defaultWeight:Double = 1.0;
+    open val defaultWeight:Double = 1.0
 
-    abstract fun calculate(): Result<SubScore>;
+    abstract suspend fun calculate(app: App, context: Context): Result<SubScore>
 
     // TODO work with SubScores
     @Composable
@@ -21,4 +20,5 @@ abstract class Module constructor(){
     override fun toString(): String {
         return this.name
     }
+
 }

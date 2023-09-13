@@ -1,5 +1,6 @@
 package de.tomcory.heimdall.evaluator
 
+import android.content.Context
 import android.content.pm.PackageInfo
 import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.evaluator.modules.StaticPermissionsScore
@@ -20,15 +21,20 @@ object Evaluator {
             TrackerScore)
     }
 
-    suspend fun evaluateApp(app: PackageInfo) {
+    suspend fun evaluateApp(pkgInfo: PackageInfo, context: Context) {
 
+        val app = HeimdallDatabase.instance?.appDao?.getAppByName(pkgInfo.packageName)
+        if (app == null){
+            Timber.d("Evaluation of ${pkgInfo.packageName} failed, because Database Entry not found")
+            return
+        }
         Timber.d("Evaluating score of ${app.packageName}")
         val scores = mutableListOf<SubScore>()
         var n = this.modules.size
 
         for (module in this.modules) {
 
-            val result = module.calculate()
+            val result = module.calculate(app, context)
             if (result.isFailure) {
                 Timber.log(
                     3,

@@ -1,8 +1,9 @@
 package de.tomcory.heimdall.evaluator
 
-data class SubScore(
+// score has to be between 0.0 and 1.0
+data class SubScore constructor(
     val module:String,
-    val weight: Double,
-    val score: Double,
+    val score: Float,
+    val weight: Double = 1.0,
     val respected: Boolean = true
 )

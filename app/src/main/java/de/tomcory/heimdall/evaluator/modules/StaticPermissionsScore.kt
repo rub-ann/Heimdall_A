@@ -22,11 +22,38 @@ import de.tomcory.heimdall.ui.apps.DonutChart
 import timber.log.Timber
 
 object StaticPermissionsScore: Module() {
-    override val name: String = "StaticPermissionScore";
+    override val name: String = "StaticPermissionScore"
 
-    override fun calculate(): Result<SubScore> {
-        val score:Double = 0.5;
-        return Result.success(SubScore(this.name, this.defaultWeight, score))
+    override suspend fun calculate(app: App, context: Context): Result<SubScore> {
+        // dummy score
+        // val score:Double = 0.5;
+        // return Result.success(SubScore(this.name, this.defaultWeight, score))
+
+        val pm = context.packageManager
+        val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.getPackageInfo(app.packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()))
+        } else {
+            pm.getPackageInfo(app.packageName, 4096)
+        }
+
+        val permProts = pkgInfo.requestedPermissions.map { perm ->
+            try {
+                pm.getPermissionInfo(perm, PackageManager.GET_META_DATA).protection
+            } catch (e: Exception) {
+                Timber.w("Unknown permission: %s", perm)
+                PermissionInfo.PROTECTION_NORMAL
+            }
+        }
+
+        val countDangerous = permProts.count { perm -> perm == PermissionInfo.PROTECTION_DANGEROUS }
+
+        val countSignature = permProts.count { perm -> perm == PermissionInfo.PROTECTION_SIGNATURE }
+
+        val countNormal = permProts.count { perm -> perm == PermissionInfo.PROTECTION_NORMAL }
+
+        val score = maxOf(1f - countDangerous *0.1f - countSignature *0.05f - countNormal * 0.01f, 0f)
+
+        return Result.success(SubScore(this.name, score))
     }
 
     @Composable

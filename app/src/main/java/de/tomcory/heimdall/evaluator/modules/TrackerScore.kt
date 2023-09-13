@@ -27,7 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import de.tomcory.heimdall.evaluator.SubScore
@@ -36,11 +35,17 @@ import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Tracker
 
 object TrackerScore: Module() {
-    override val name: String = "TrackerScore";
+    override val name: String = "TrackerScore"
 
-    override fun calculate(): Result<SubScore> {
-        val score: Double = 0.5
-        return Result.success(SubScore(this.name, this.defaultWeight, score))
+    override suspend fun calculate(app: App, context: Context): Result<SubScore> {
+        // dummy score
+        // val score: Double = 0.5
+        // return Result.success(SubScore(this.name, this.defaultWeight, score))
+        val trackers = HeimdallDatabase.instance?.appXTrackerDao
+            ?.getAppWithTrackers(app.packageName)?.trackers ?: listOf<Tracker>()
+
+        val score = maxOf(1f - trackers.size * 0.2f)
+        return Result.success(SubScore(this.name, score))
     }
 
     @Composable

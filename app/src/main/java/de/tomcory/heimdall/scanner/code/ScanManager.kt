@@ -69,7 +69,7 @@ class ScanManager private constructor(
             libraryScanner?.scanApp(packageInfo)
         }
         if(dataStore.scanEvaluatorEnable) {
-            evaluator.evaluateApp(packageInfo)
+            evaluator.evaluateApp(packageInfo, context)
         }
     }
 
@@ -130,7 +130,7 @@ class ScanManager private constructor(
             }
             if(dataStore.scanEvaluatorEnable) {
                 try {
-                    evaluator?.evaluateApp(it)
+                    evaluator.evaluateApp(it, context)
                 } catch (e: Exception) {
                     Timber.e(e, "Error evaluating score for ${it.packageName}")
                 }
