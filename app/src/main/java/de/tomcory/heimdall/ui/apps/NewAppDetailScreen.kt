@@ -1,6 +1,7 @@
 package de.tomcory.heimdall.ui.apps
 
-import android.graphics.drawable.Icon
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,20 +19,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
+import de.tomcory.heimdall.util.OsUtils.uninstallPackage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +53,7 @@ fun NewAppDetailScreen(
     val packageIcon = app.icon //pkgInfo?.applicationInfo?.loadIcon(pm) //
 
     val modules = Evaluator.modules
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = null, block = {
         reports = getAppWithReports(app.packageName)
@@ -91,14 +94,35 @@ fun NewAppDetailScreen(
                     }
                 },
                 actions = {
-                    IconToggleButton(checked = false, onCheckedChange = { /*TODO*/ }, content = { Icon(
+                    IconToggleButton(checked = false, onCheckedChange = { dropdownExpanded = !dropdownExpanded}, content = { Icon(
                         imageVector = Icons.Filled.MoreVert,
                         contentDescription = "More AppDetail Options"
                     )})
+                    DropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = {  Text("Rescan") },
+                            onClick = { /* Handle refresh! */ }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Uninstall") },
+                            onClick = {
+                                uninstallPackage(context, app.packageName)
+                            }
+                        )
+                        Divider()
+                        DropdownMenuItem(
+                            text = { Text("Send Feedback") },
+                            onClick = { /* Handle send feedback! */ }
+                        )
+                    }
                 }
             )
         },
-        floatingActionButton = { RescanFloatingActionButton() }
+        floatingActionButton = { RescanFloatingActionButton() },
+
     ) { padding ->
         LazyColumn(
             modifier = Modifier
