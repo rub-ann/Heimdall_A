@@ -58,7 +58,7 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<App>) {
                     onDismissRequest = { showAppDetailDialog = false },
                     properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {
-                    NewAppDetailScreen(packageName = it.packageName, onDismissRequest = { showAppDetailDialog = false })
+                    NewAppDetailScreen(app = it, onDismissRequest = { showAppDetailDialog = false })
                 }
             }
         }
@@ -244,6 +244,12 @@ fun AppInfoCard(app: App) {
     }
 }
 
+@Preview
+@Composable
+fun AppInfoCardPreview(){
+    AppInfoCard(app = App("test.package.com", "TestApp", "0.1", 1 ))
+}
+
 suspend fun getApps(context: Context): List<App> = withContext(Dispatchers.IO) {
     val apps = HeimdallDatabase.instance?.appDao?.getAll() ?: listOf()
     apps.forEach {
@@ -253,6 +259,7 @@ suspend fun getApps(context: Context): List<App> = withContext(Dispatchers.IO) {
     }
     return@withContext apps
 }
+
 
 data class AppInfo(
     val packageName: String,

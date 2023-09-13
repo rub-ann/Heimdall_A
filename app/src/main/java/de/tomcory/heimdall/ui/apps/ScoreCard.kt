@@ -37,7 +37,7 @@ fun ScoreCard(report: Report?) {
             Spacer(modifier = Modifier.height(8.dp))
 
             if (report != null) {
-                ScoreChart(score = report.mainScore)
+                ScoreChart(score = report.mainScore * 100)
             } else {
                 Text(text = "No Score found in Database. Consider re-scanning")
             }
@@ -49,7 +49,7 @@ fun ScoreCard(report: Report?) {
 @Composable
 fun ScoreCardPreview(){
     Column {
-        val report_sample = Report("test.android.com", timestamp = 3000, mainScore = 0.6)
+        val report_sample = Report("test.android.com", timestamp = 3000, mainScore = .8)
         ScoreCard(report =  report_sample)
         Spacer(modifier = Modifier.height(10.dp))
         ScoreCard(report =  null)
