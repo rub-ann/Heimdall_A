@@ -5,6 +5,7 @@ import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.evaluator.modules.StaticPermissionsScore
 import de.tomcory.heimdall.evaluator.modules.TrackerScore
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
+import de.tomcory.heimdall.persistence.database.entity.AppXReport
 import de.tomcory.heimdall.persistence.database.entity.Report
 import timber.log.Timber
 
@@ -14,7 +15,9 @@ object Evaluator {
     init {
         //TODO("implement automatic module discovery")
         Timber.d("Evaluator onCreate")
-        this.modules = listOf(StaticPermissionsScore, TrackerScore)
+        this.modules = listOf(
+            StaticPermissionsScore,
+            TrackerScore)
     }
 
     suspend fun evaluateApp(app: PackageInfo) {
@@ -51,6 +54,11 @@ object Evaluator {
         val report = Report(packageName = packageName, timestamp = System.currentTimeMillis(), mainScore = totalScore)
         Timber.d("$report")
         HeimdallDatabase.instance?.reportDao?.insertReport(report)
-        //HeimdallDatabase.instance?.appXReportDao?.insert(AppXReport(packageName, report.reportId))
+            ?.let { rowId ->
+                HeimdallDatabase.instance?.reportDao?.getReportByRowId(rowId)?.let {
+                HeimdallDatabase.instance?.appXReportDao?.insert(AppXReport(packageName, it))
+            }
+        }
+
     }
 }
