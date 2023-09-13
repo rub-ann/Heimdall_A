@@ -43,22 +43,33 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun AppInfoList(paddingValues: PaddingValues, apps: List<App>) {
-    LazyColumn(modifier = Modifier.padding(paddingValues)) {
-        items(apps) {
-            var showAppDetailDialog by remember { mutableStateOf(false) }
-            AppListItem(
-                app = it,
-                modifier = Modifier.clickable {
-                    showAppDetailDialog = true
-                }
-            )
+    if (apps.isEmpty()){
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+        ){
+            Text(text = "No apps found in Database. Consider rescanning", modifier = Modifier.align(Alignment.Center), style = MaterialTheme.typography.labelMedium)
+        }
+    } else {
+        LazyColumn(modifier = Modifier.padding(paddingValues)) {
+            items(apps) {
+                var showAppDetailDialog by remember { mutableStateOf(false) }
+                AppListItem(
+                    app = it,
+                    modifier = Modifier.clickable {
+                        showAppDetailDialog = true
+                    }
+                )
 
-            if(showAppDetailDialog) {
-                Dialog(
-                    onDismissRequest = { showAppDetailDialog = false },
-                    properties = DialogProperties(usePlatformDefaultWidth = false)
-                ) {
-                    NewAppDetailScreen(app = it, onDismissRequest = { showAppDetailDialog = false })
+                if (showAppDetailDialog) {
+                    Dialog(
+                        onDismissRequest = { showAppDetailDialog = false },
+                        properties = DialogProperties(usePlatformDefaultWidth = false)
+                    ) {
+                        NewAppDetailScreen(
+                            app = it,
+                            onDismissRequest = { showAppDetailDialog = false })
+                    }
                 }
             }
         }
