@@ -20,15 +20,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.evaluator.Evaluator
-import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.util.OsUtils.uninstallPackage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.internal.applyConnectionSpec
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +34,7 @@ fun NewAppDetailScreen(
     val app = appWithReports.app
     val context = LocalContext.current
 
-    var reports = appWithReports.reports
+    val reports = appWithReports.reports
 
     val packageLabel =
         app.label //pkgInfo?.applicationInfo?.loadLabel(pm).toString() ?:
@@ -131,18 +126,13 @@ fun NewAppDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
             items(modules){module ->
-                module.buildUICard(app = app, context = context)
+                module.BuildUICard(app = app, context = context)
                 Spacer(modifier = Modifier.height(9.dp))
             }
         }
     }
 }
 
-
-suspend fun getAppWithReports(packageName: String): List<Report> =
-    withContext(Dispatchers.IO) {
-        return@withContext HeimdallDatabase.instance?.reportDao?.getAppWithReports(packageName) ?: listOf()
-    }
 
 @Preview
 @Composable
@@ -154,6 +144,6 @@ fun NewAppDetailScreenPreview() {
         versionCode = 0
     )
     val reports = listOf(Report(mainScore = 0.76, timestamp = 1234, packageName = "com.test.package"))
-    NewAppDetailScreen(appWithReports = AppWithReports(app, reports), onDismissRequest = { false })
+    NewAppDetailScreen(appWithReports = AppWithReports(app, reports), onDismissRequest = { })
 }
 

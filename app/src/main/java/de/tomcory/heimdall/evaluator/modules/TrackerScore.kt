@@ -10,15 +10,9 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import de.tomcory.heimdall.evaluator.SubScore
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
@@ -40,18 +33,20 @@ class TrackerScore: Module() {
     override suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate: Boolean): Result<SubScore> {
         // TODO implement lazy loading from Database
         val trackers = HeimdallDatabase.instance?.appXTrackerDao
-            ?.getAppWithTrackers(app.packageName)?.trackers ?: listOf<Tracker>()
+            ?.getAppWithTrackers(app.packageName)?.trackers ?: listOf()
 
         val score = maxOf(1f - trackers.size * 0.2f, 0f)
         return Result.success(SubScore(this.name, score))
     }
 
     @Composable
-    override fun buildUICard(app: App, context: Context): () -> Unit {
-        val uiFactory = @Composable fun() {
-            LibraryUICard(app = app, context = context)
+    override fun BuildUICard(app: App, context: Context) {
+        super.UICard(
+            title = "Tracker Libraries",
+            infoText = "This modules scans for Libraries in the apps code that are know to relate to tracking and lists them."
+        ){
+            LibraryUICardContent(app = app, context = context)
         }
-        return uiFactory
     }
 
     override fun exportJSON(): String {
@@ -60,7 +55,7 @@ class TrackerScore: Module() {
 }
 
 @Composable
-fun LibraryUICard(app: App, context: Context) {
+fun LibraryUICardContent(app: App, context: Context) {
     var trackers = listOf<Tracker>()
     var loadingTrackers by remember { mutableStateOf(true) }
 

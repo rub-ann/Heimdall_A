@@ -6,13 +6,10 @@ import android.content.pm.PermissionInfo
 import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,13 +20,11 @@ import timber.log.Timber
 
 class StaticPermissionsScore: Module() {
     override val name: String = "StaticPermissionScore"
-
     override suspend fun calculateOrLoad(
         app: App,
         context: Context,
         forceRecalculate: Boolean
     ): Result<SubScore> {
-        // TODO implement lazy loading from Database
         val pm = context.packageManager
         val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pm.getPackageInfo(app.packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()))
@@ -58,12 +53,15 @@ class StaticPermissionsScore: Module() {
     }
 
     @Composable
-    override fun buildUICard(app: App, context: Context): () -> Unit {
-        val uiFactory = @Composable fun() {
-            PermissionUICard(app = app, pm = context.packageManager)
+    override fun BuildUICard(app: App, context: Context) {
+        super.UICard(
+            title = "Permissions",
+            infoText = "This modules inspects the permissions the app might request at some point. These are categorized into 'Dangerous', 'Signature' and 'Normal'"
+        ){
+            UICardContent(app, context.packageManager)
         }
-        return uiFactory
     }
+
 
     override fun exportJSON(): String {
         TODO("Not yet implemented")
@@ -72,11 +70,12 @@ class StaticPermissionsScore: Module() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PermissionUICard(app: App, pm: PackageManager)
-{
-
+fun UICardContent(app: App, pm: PackageManager) {
     val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        pm.getPackageInfo(app.packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()))
+        pm.getPackageInfo(
+            app.packageName,
+            PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong())
+        )
     } else {
         pm.getPackageInfo(app.packageName, 4096)
     }
@@ -96,11 +95,25 @@ fun PermissionUICard(app: App, pm: PackageManager)
 
     val countNormal = permProts.count { perm -> perm == PermissionInfo.PROTECTION_NORMAL }
 
-    DonutChart(
-        values = listOf(countDangerous.toFloat(), countNormal.toFloat(), countSignature.toFloat()),
-        legend = listOf("Dangerous", "Normal", "Signature"),
-        size = 200.dp,
-        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary)
-    )
+    Column(
+        modifier = Modifier.padding(12.dp, 12.dp)
+    ) {
+        Spacer(modifier = Modifier.height(8.dp))
+
+        DonutChart(
+            values = listOf(
+                countDangerous.toFloat(),
+                countNormal.toFloat(),
+                countSignature.toFloat()
+            ),
+            legend = listOf("Dangerous", "Normal", "Signature"),
+            size = 150.dp,
+            colors = listOf(
+                MaterialTheme.colorScheme.primary,
+                MaterialTheme.colorScheme.secondary,
+                MaterialTheme.colorScheme.tertiary
+            )
+        )
+    }
 }
 
