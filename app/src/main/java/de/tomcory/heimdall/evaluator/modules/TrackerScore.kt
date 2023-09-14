@@ -44,7 +44,7 @@ object TrackerScore: Module() {
         val trackers = HeimdallDatabase.instance?.appXTrackerDao
             ?.getAppWithTrackers(app.packageName)?.trackers ?: listOf<Tracker>()
 
-        val score = maxOf(1f - trackers.size * 0.2f)
+        val score = maxOf(1f - trackers.size * 0.2f, 0f)
         return Result.success(SubScore(this.name, score))
     }
 
