@@ -1,7 +1,5 @@
 package de.tomcory.heimdall.ui.apps
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,11 +22,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
+import de.tomcory.heimdall.persistence.database.entity.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.util.OsUtils.uninstallPackage
 import kotlinx.coroutines.Dispatchers
@@ -38,14 +36,13 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewAppDetailScreen(
-    app: App,
-    onDismissRequest: () -> Unit
+    appWithReports: AppWithReports,
+    onDismissRequest: () -> Unit,
 ) {
-
+    val app = appWithReports.app
     val context = LocalContext.current
 
-    var loadingReports by remember { mutableStateOf(true) }
-    var reports by remember { mutableStateOf(listOf<Report>()) }
+    var reports = appWithReports.reports
 
     val packageLabel =
         app.label //pkgInfo?.applicationInfo?.loadLabel(pm).toString() ?:
@@ -54,11 +51,6 @@ fun NewAppDetailScreen(
 
     val modules = Evaluator.modules
     var dropdownExpanded by remember { mutableStateOf(false) }
-
-    LaunchedEffect(key1 = null, block = {
-        reports = getAppWithReports(app.packageName)
-        loadingReports = false
-    })
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -135,19 +127,7 @@ fun NewAppDetailScreen(
             }
 
             item {
-/*                AnimatedVisibility(visible = loadingReports, enter = fadeIn(), exit = fadeOut()) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        CircularProgressIndicator()
-                        Text(text = "Loading reports..")
-                    }
-                }*/
-
-                AnimatedVisibility(visible = !loadingReports, enter = fadeIn(), exit = fadeOut()) {
-                    ScoreCard(report = reports.lastOrNull())
-                }
+                ScoreCard(report = reports.lastOrNull())
             }
 
             item {
@@ -181,6 +161,7 @@ fun NewAppDetailScreenPreview() {
         versionName = "v0.1",
         versionCode = 0
     )
-    NewAppDetailScreen(app = app, onDismissRequest = { false })
+    val reports = listOf(Report(mainScore = 0.76, timestamp = 1234, packageName = "com.test.package"))
+    NewAppDetailScreen(appWithReports = AppWithReports(app, reports), onDismissRequest = { false })
 }
 

@@ -19,12 +19,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -37,12 +40,14 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.R
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
+import de.tomcory.heimdall.persistence.database.entity.AppWithReports
 import de.tomcory.heimdall.scanner.code.ScanManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @Composable
-fun AppInfoList(paddingValues: PaddingValues, apps: List<App>) {
+fun AppInfoList(paddingValues: PaddingValues, apps: List<AppWithReports>) {
     if (apps.isEmpty()){
         Box(modifier = Modifier
             .fillMaxSize()
@@ -55,7 +60,7 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<App>) {
             items(apps) {
                 var showAppDetailDialog by remember { mutableStateOf(false) }
                 AppListItem(
-                    app = it,
+                    appWithReports = it,
                     modifier = Modifier.clickable {
                         showAppDetailDialog = true
                     }
@@ -67,7 +72,7 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<App>) {
                         properties = DialogProperties(usePlatformDefaultWidth = false)
                     ) {
                         NewAppDetailScreen(
-                            app = it,
+                            appWithReports = it,
                             onDismissRequest = { showAppDetailDialog = false })
                     }
                 }
@@ -77,7 +82,8 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<App>) {
 }
 
 @Composable
-fun AppListItem(app: App, modifier: Modifier) {
+fun AppListItem(appWithReports: AppWithReports, modifier: Modifier) {
+    val app = appWithReports.app
     ListItem(
         headlineContent = {
             if(!app.isInstalled) {
@@ -111,6 +117,14 @@ fun AppListItem(app: App, modifier: Modifier) {
 
             Image(painter = painter, contentDescription = "App icon", modifier = Modifier.size(40.dp), colorFilter = colorFilter)
         },
+        trailingContent = {
+            val score: Double = appWithReports.reports.lastOrNull()?.mainScore ?: 0.76
+            val green: Int = (155 * score).toInt()
+            val red: Int = (255 * (1 - score)).toInt()
+            Box(modifier = Modifier.fillMaxHeight()){
+                Text(text = "${(score * 100).toInt()}", style = MaterialTheme.typography.displaySmall.merge(TextStyle(color = Color(red, green, 0), textAlign = TextAlign.Center)))
+            }
+        },
         modifier = modifier
     )
 }
@@ -131,10 +145,11 @@ fun AppsScreen(navController: NavHostController?) {
     val context = LocalContext.current
     var loadingApps by remember { mutableStateOf(true) }
 
-    var apps by remember { mutableStateOf(listOf<App>()) }
+    var apps by remember { mutableStateOf(listOf<AppWithReports>()) }
 
     LaunchedEffect(key1 = null, block = {
-        apps = getApps(context)
+        apps = getAppsWithReport(context)
+        Timber.d("fetched ${apps.size} apps")
         loadingApps = false
     })
 
@@ -206,7 +221,6 @@ fun AppsScreenPreview() {
 
 @Composable
 fun AppInfoCard(app: App) {
-
     var isSelected by remember { mutableStateOf(false) }
     val surfaceColor by animateColorAsState(
         if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary, label = "surfaceColorSelected"
@@ -269,6 +283,20 @@ suspend fun getApps(context: Context): List<App> = withContext(Dispatchers.IO) {
         }
     }
     return@withContext apps
+}
+
+suspend fun getAppsWithReport(context: Context): List<AppWithReports> = withContext(Dispatchers.IO) {
+    val apps = HeimdallDatabase.instance?.appDao?.getAll() ?: listOf()
+    val appsWithReports = mutableListOf<AppWithReports>()
+    apps.map {
+        if(it.icon == null && it.isInstalled) {
+            it.icon = ScanManager.getAppIcon(context, it.packageName)
+        }
+        val reports = HeimdallDatabase.instance?.reportDao?.getAppWithReports(it.packageName) ?: listOf()
+        appsWithReports.add(AppWithReports(it, reports))
+    }
+    appsWithReports.sortedByDescending { it.reports.lastOrNull()?.mainScore ?: 0.0 }
+    return@withContext appsWithReports
 }
 
 
