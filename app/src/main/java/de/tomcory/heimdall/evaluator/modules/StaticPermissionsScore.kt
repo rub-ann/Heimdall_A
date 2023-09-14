@@ -21,7 +21,7 @@ import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.ui.apps.DonutChart
 import timber.log.Timber
 
-object StaticPermissionsScore: Module() {
+class StaticPermissionsScore: Module() {
     override val name: String = "StaticPermissionScore"
 
     override suspend fun calculate(app: App, context: Context): Result<SubScore> {
@@ -57,14 +57,22 @@ object StaticPermissionsScore: Module() {
     }
 
     @Composable
-    override fun UICard(app: App, context: Context) {
-        UICard(app = app, pm = context.packageManager)
+    override fun buildUICard(app: App, context: Context): () -> Unit {
+        val uiFactory = @Composable fun() {
+            PermissionUICard(app = app, pm = context.packageManager)
+        }
+        return uiFactory
+    }
+
+    override fun exportJSON(): String {
+        TODO("Not yet implemented")
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UICard(app: App, pm: PackageManager) {
+fun PermissionUICard(app: App, pm: PackageManager)
+{
 
     val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         pm.getPackageInfo(app.packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()))
@@ -87,30 +95,11 @@ fun UICard(app: App, pm: PackageManager) {
 
     val countNormal = permProts.count { perm -> perm == PermissionInfo.PROTECTION_NORMAL }
 
-    return OutlinedCard(
-    onClick = { /*TODO*/ },
-    modifier = Modifier
-        .padding(8.dp, 0.dp)
-        .fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp, 12.dp)
-        ) {
-
-            Text(
-                text = "Permissions",
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            DonutChart(
-                values = listOf(countDangerous.toFloat(), countNormal.toFloat(), countSignature.toFloat()),
-                legend = listOf("Dangerous", "Normal", "Signature"),
-                size = 200.dp,
-                colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary)
-            )
-        }
-    }
+    DonutChart(
+        values = listOf(countDangerous.toFloat(), countNormal.toFloat(), countSignature.toFloat()),
+        legend = listOf("Dangerous", "Normal", "Signature"),
+        size = 200.dp,
+        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary)
+    )
 }
 

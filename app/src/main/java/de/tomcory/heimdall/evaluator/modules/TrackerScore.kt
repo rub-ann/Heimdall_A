@@ -34,13 +34,10 @@ import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Tracker
 
-object TrackerScore: Module() {
+class TrackerScore: Module() {
     override val name: String = "TrackerScore"
 
     override suspend fun calculate(app: App, context: Context): Result<SubScore> {
-        // dummy score
-        // val score: Double = 0.5
-        // return Result.success(SubScore(this.name, this.defaultWeight, score))
         val trackers = HeimdallDatabase.instance?.appXTrackerDao
             ?.getAppWithTrackers(app.packageName)?.trackers ?: listOf<Tracker>()
 
@@ -49,14 +46,20 @@ object TrackerScore: Module() {
     }
 
     @Composable
-    override fun UICard(app: App, context: Context) {
-        LibraryCard(app, context)
+    override fun buildUICard(app: App, context: Context): () -> Unit {
+        val uiFactory = @Composable fun() {
+            LibraryUICard(app = app, context = context)
+        }
+        return uiFactory
+    }
+
+    override fun exportJSON(): String {
+        TODO("Not yet implemented")
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryCard(app: App, context: Context) {
+fun LibraryUICard(app: App, context: Context) {
     var trackers = listOf<Tracker>()
     var loadingTrackers by remember { mutableStateOf(true) }
 
@@ -67,45 +70,26 @@ fun LibraryCard(app: App, context: Context) {
         loadingTrackers = false
     })
 
-    OutlinedCard(
-        onClick = { /*TODO*/ },
-        modifier = Modifier
-            .padding(8.dp, 0.dp)
-            .fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp, 12.dp)
-        ) {
+    AnimatedVisibility(visible = loadingTrackers, enter = fadeIn(), exit = fadeOut()) {
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+    }
 
-            Text(
-                text = "Tracker Libraries",
-                style = MaterialTheme.typography.titleLarge
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            AnimatedVisibility(visible = loadingTrackers, enter = fadeIn(), exit = fadeOut()) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
-
-            AnimatedVisibility(visible = !loadingTrackers, enter = slideInVertically(), exit = slideOutVertically()) {
-                Column {
-                    if (trackers.isNotEmpty()) {
-                        for (tracker in trackers) {
-                            ListItem(
-                                headlineContent = { Text(text = tracker.name) },
-                                supportingContent = { Text(text = tracker.web) },
-                                modifier = Modifier.clickable(tracker.web.isNotEmpty()) {
-                                    // open the tracker's URL in the browser
-                                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(tracker.web))
-                                    ContextCompat.startActivity(context, browserIntent, null)
-                                }
-                            )
+    AnimatedVisibility(visible = !loadingTrackers, enter = slideInVertically(), exit = slideOutVertically()) {
+        Column {
+            if (trackers.isNotEmpty()) {
+                for (tracker in trackers) {
+                    ListItem(
+                        headlineContent = { Text(text = tracker.name) },
+                        supportingContent = { Text(text = tracker.web) },
+                        modifier = Modifier.clickable(tracker.web.isNotEmpty()) {
+                            // open the tracker's URL in the browser
+                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(tracker.web))
+                            ContextCompat.startActivity(context, browserIntent, null)
                         }
-                    } else {
-                        Text(text = "0 tracker libraries found")
-                    }
+                    )
                 }
+            } else {
+                Text(text = "0 tracker libraries found")
             }
         }
     }
