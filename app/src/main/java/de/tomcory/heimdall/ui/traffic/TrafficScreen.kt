@@ -185,7 +185,7 @@ fun TrafficScreen() {
                     .padding(it)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                //TODO: content
+                DeviceOverview()
             }
         }
     }
