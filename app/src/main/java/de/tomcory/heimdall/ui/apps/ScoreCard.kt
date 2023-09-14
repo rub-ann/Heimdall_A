@@ -8,6 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.tomcory.heimdall.persistence.database.entity.Report
@@ -25,13 +27,14 @@ fun ScoreCard(report: Report?) {
     ) {
         Column(
             modifier = Modifier
-                .padding(12.dp, 12.dp)
+                .padding(0.dp, 12.dp)
                 .align(Alignment.CenterHorizontally)
         ) {
 
             Text(
                 text = "Score",
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge.merge(TextStyle(fontWeight = FontWeight.SemiBold)),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
