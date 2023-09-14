@@ -3,6 +3,7 @@ package de.tomcory.heimdall.evaluator
 import android.content.Context
 import android.content.pm.PackageInfo
 import de.tomcory.heimdall.evaluator.modules.Module
+import de.tomcory.heimdall.evaluator.modules.ModuleFactory
 import de.tomcory.heimdall.evaluator.modules.StaticPermissionsScore
 import de.tomcory.heimdall.evaluator.modules.TrackerScore
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
@@ -12,13 +13,11 @@ import timber.log.Timber
 
 object Evaluator {
     var modules: List<Module>
+    val moduleFactory: ModuleFactory = ModuleFactory
 
     init {
-        //TODO("implement automatic module discovery")
-        Timber.d("Evaluator onCreate")
-        this.modules = listOf(
-            StaticPermissionsScore,
-            TrackerScore)
+        Timber.d("Evaluator init")
+        this.modules = moduleFactory.registeredModules
     }
 
     suspend fun evaluateApp(pkgInfo: PackageInfo, context: Context) {
