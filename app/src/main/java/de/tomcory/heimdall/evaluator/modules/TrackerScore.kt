@@ -37,7 +37,8 @@ import de.tomcory.heimdall.persistence.database.entity.Tracker
 class TrackerScore: Module() {
     override val name: String = "TrackerScore"
 
-    override suspend fun calculate(app: App, context: Context): Result<SubScore> {
+    override suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate: Boolean): Result<SubScore> {
+        // TODO implement lazy loading from Database
         val trackers = HeimdallDatabase.instance?.appXTrackerDao
             ?.getAppWithTrackers(app.packageName)?.trackers ?: listOf<Tracker>()
 

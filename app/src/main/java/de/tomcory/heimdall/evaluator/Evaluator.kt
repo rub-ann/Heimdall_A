@@ -33,7 +33,7 @@ object Evaluator {
 
         for (module in this.modules) {
 
-            val result = module.calculate(app, context)
+            val result = module.calculateOrLoad(app, context)
             if (result.isFailure) {
                 Timber.log(
                     3,

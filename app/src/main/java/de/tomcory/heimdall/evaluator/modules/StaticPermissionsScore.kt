@@ -24,11 +24,12 @@ import timber.log.Timber
 class StaticPermissionsScore: Module() {
     override val name: String = "StaticPermissionScore"
 
-    override suspend fun calculate(app: App, context: Context): Result<SubScore> {
-        // dummy score
-        // val score:Double = 0.5;
-        // return Result.success(SubScore(this.name, this.defaultWeight, score))
-
+    override suspend fun calculateOrLoad(
+        app: App,
+        context: Context,
+        forceRecalculate: Boolean
+    ): Result<SubScore> {
+        // TODO implement lazy loading from Database
         val pm = context.packageManager
         val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pm.getPackageInfo(app.packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()))

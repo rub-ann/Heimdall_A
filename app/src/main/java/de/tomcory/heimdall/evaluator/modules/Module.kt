@@ -38,7 +38,7 @@ abstract class Module {
 
     val defaultWeight:Double = 1.0
 
-    abstract suspend fun calculate(app: App, context: Context): Result<SubScore>
+    abstract suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate:Boolean = false): Result<SubScore>
 
     // TODO work with SubScores
     @Composable
