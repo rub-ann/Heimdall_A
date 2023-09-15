@@ -38,7 +38,15 @@ data class AppWithReports(
     @Embedded val app: App,
     @Relation(
         parentColumn = "packageName",
-        entityColumn = "reportId"
+        entityColumn = "packageName"
     )
     val reports: List<Report>
-)
+): Comparable<AppWithReports> {
+    override operator fun compareTo(other: AppWithReports): Int {
+        if (this.app.packageName > other.app.packageName) return 1
+        if (this.app.packageName < other.app.packageName) return -1
+        if ((this.reports.lastOrNull()?.mainScore ?: 0.0) > (other.reports.lastOrNull()?.mainScore ?: 0.0)) return 1
+        if ((this.reports.lastOrNull()?.mainScore ?: 0.0) < (other.reports.lastOrNull()?.mainScore ?: 0.0)) return -1
+        return 0
+    }
+}

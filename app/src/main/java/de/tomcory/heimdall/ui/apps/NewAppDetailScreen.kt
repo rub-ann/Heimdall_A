@@ -1,5 +1,6 @@
 package de.tomcory.heimdall.ui.apps
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +25,7 @@ import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.util.OsUtils.uninstallPackage
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,15 +36,19 @@ fun NewAppDetailScreen(
     val app = appWithReports.app
     val context = LocalContext.current
 
-    val reports = appWithReports.reports
+    val report by remember {
+        mutableStateOf(appWithReports.reports.lastOrNull())
+    }
 
     val packageLabel =
-        app.label //pkgInfo?.applicationInfo?.loadLabel(pm).toString() ?:
-    val packageName = app.packageName// pkgInfo?.packageName ?: packageName //
-    val packageIcon = app.icon //pkgInfo?.applicationInfo?.loadIcon(pm) //
+        app.label
+    val packageName = app.packageName
+    val packageIcon = app.icon
 
     val modules = Evaluator.modules
     var dropdownExpanded by remember { mutableStateOf(false) }
+
+    Timber.d("Showing Details of $appWithReports")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -110,16 +116,16 @@ fun NewAppDetailScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
-        ) {
-
+                .padding(padding)
+                .padding(8.dp, 0.dp)
+        ){
             item {
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
             item {
-                ScoreCard(report = reports.lastOrNull())
+                ScoreCard(report = report)
             }
 
             item {
@@ -131,6 +137,11 @@ fun NewAppDetailScreen(
             }
         }
     }
+}
+
+suspend fun rescanApp(packageName: String, context: Context){
+    // TODO start coroutine
+    Evaluator.evaluateApp(packageName, context)
 }
 
 

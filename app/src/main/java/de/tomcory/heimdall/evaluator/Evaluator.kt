@@ -17,12 +17,12 @@ object Evaluator {
         this.modules = moduleFactory.registeredModules
     }
 
-    suspend fun evaluateApp(pkgInfo: PackageInfo, context: Context) {
+    suspend fun evaluateApp(packageName: String, context: Context): Report? {
 
-        val app = HeimdallDatabase.instance?.appDao?.getAppByName(pkgInfo.packageName)
+        val app = HeimdallDatabase.instance?.appDao?.getAppByName(packageName)
         if (app == null){
-            Timber.d("Evaluation of ${pkgInfo.packageName} failed, because Database Entry not found")
-            return
+            Timber.d("Evaluation of ${packageName} failed, because Database Entry not found")
+            return null
         }
         Timber.d("Evaluating score of ${app.packageName}")
         val scores = mutableListOf<SubScore>()
@@ -48,14 +48,15 @@ object Evaluator {
         }
         val totalScore = scores.fold(0.0){sum, s -> sum + s.score * s.weight} / n
         Timber.d("evaluation complete for ${app.packageName}: $totalScore}")
-        createReport(app.packageName, totalScore, scores)
+        return createReport(app.packageName, totalScore, scores)
     }
 
 
-    private suspend fun createReport(packageName:String, totalScore: Double, subScores: List<SubScore>){
+    private suspend fun createReport(packageName:String, totalScore: Double, subScores: List<SubScore>): Report {
         val report = Report(packageName = packageName, timestamp = System.currentTimeMillis(), mainScore = totalScore)
         Timber.d("$report")
         HeimdallDatabase.instance?.reportDao?.insertReport(report)
+        return report
     }
 
 }

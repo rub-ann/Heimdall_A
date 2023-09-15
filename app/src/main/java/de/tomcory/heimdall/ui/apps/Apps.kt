@@ -41,6 +41,7 @@ import de.tomcory.heimdall.R
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
+import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.scanner.code.ScanManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -121,9 +122,7 @@ fun AppListItem(appWithReports: AppWithReports, modifier: Modifier) {
             val score: Double = appWithReports.reports.lastOrNull()?.mainScore ?: 0.76
             val green: Int = (155 * score).toInt()
             val red: Int = (255 * (1 - score)).toInt()
-            Box(modifier = Modifier.fillMaxHeight()){
-                Text(text = "${(score * 100).toInt()}", style = MaterialTheme.typography.displaySmall.merge(TextStyle(color = Color(red, green, 0), textAlign = TextAlign.Center)))
-            }
+            Text(text = "${(score * 100).toInt()}", style = MaterialTheme.typography.displaySmall.merge(TextStyle(color = Color(red, green, 0), textAlign = TextAlign.Center)))
         },
         modifier = modifier
     )
@@ -147,12 +146,11 @@ fun AppsScreen(navController: NavHostController?) {
 
     var apps by remember { mutableStateOf(listOf<AppWithReports>()) }
 
-    LaunchedEffect(key1 = null, block = {
-        apps = getAppsWithReport(context)
-        apps.sortedByDescending { it.app.packageName }
-        Timber.d("fetched ${apps.size} apps")
+    LaunchedEffect(key1 = null) {
+        apps = getAppsWithReport(context).sorted()
+        Timber.d("fetched ${apps.size} apps with reports")
         loadingApps = false
-    })
+    }
 
     Scaffold(
         topBar = {
@@ -272,8 +270,14 @@ fun AppInfoCard(app: App) {
 
 @Preview
 @Composable
-fun AppInfoCardPreview(){
-    AppInfoCard(app = App("test.package.com", "TestApp", "0.1", 1 ))
+fun AppListItemPreview(){
+    val app = App("test.package.com", "TestApp", "0.1", 1 )
+    val report = Report("test.package.com", timestamp = 1234, mainScore = 0.76)
+    val appWithReports = AppWithReports(app, listOf(report))
+    AppListItem(
+        appWithReports,
+        Modifier.height(60.dp).fillMaxWidth()
+        )
 }
 
 suspend fun getApps(context: Context): List<App> = withContext(Dispatchers.IO) {
@@ -287,11 +291,12 @@ suspend fun getApps(context: Context): List<App> = withContext(Dispatchers.IO) {
 }
 
 suspend fun getAppsWithReport(context: Context): List<AppWithReports> = withContext(Dispatchers.IO) {
-    val apps = HeimdallDatabase.instance?.appDao?.getAllAppWithReports() ?: listOf<AppWithReports>()
-    apps.map {
+    var apps = HeimdallDatabase.instance?.appDao?.getAllAppWithReports() ?: listOf()
+    apps = apps.map {
         if(it.app.icon == null && it.app.isInstalled) {
             it.app.icon = ScanManager.getAppIcon(context, it.app.packageName)
         }
+        it
     }
     return@withContext apps
 }
