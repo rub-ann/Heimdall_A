@@ -16,6 +16,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import de.tomcory.heimdall.evaluator.SubScore
 import androidx.compose.runtime.Composable
@@ -25,6 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +52,7 @@ abstract class Module {
         content: @Composable() () -> Unit
     ){
         var showInfoText: Boolean by remember { mutableStateOf(false) }
-        Card(
+        OutlinedCard(
             // modifier = Modifier.padding(10.dp, 10.dp)
         ) {
             Column(
@@ -79,7 +82,10 @@ abstract class Module {
                     }
                 }
                 AnimatedVisibility(visible = showInfoText) {
-                    Text(text = infoText)
+                    Text(text = infoText, style= MaterialTheme.typography.labelMedium.merge(
+                        TextStyle(fontStyle = FontStyle.Italic)
+                    ))
+                    Spacer(modifier = Modifier.height(5.dp))
                 }
                 content()
             }
@@ -103,7 +109,9 @@ fun UICardPreview(){
         title = "TestCard",
         infoText = "This Module examines a particular part of the app. A lower score means is it not particularly privacy conscious."
     ){
-        Spacer(modifier = Modifier.height(100.dp).fillMaxSize())
+        Spacer(modifier = Modifier
+            .height(100.dp)
+            .fillMaxSize())
     }
 }
 

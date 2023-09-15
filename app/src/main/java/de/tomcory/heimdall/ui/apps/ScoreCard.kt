@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.tomcory.heimdall.persistence.database.entity.Report
@@ -22,12 +23,11 @@ fun ScoreCard(report: Report?) {
     ElevatedCard(
         onClick = { /*TODO*/ },
         modifier = Modifier
-            .padding(8.dp, 0.dp)
             .fillMaxWidth()
     ) {
         Column(
             modifier = Modifier
-                .padding(0.dp, 12.dp)
+                .padding(10.dp, 12.dp)
                 .align(Alignment.CenterHorizontally)
         ) {
 
@@ -42,7 +42,7 @@ fun ScoreCard(report: Report?) {
             if (report != null) {
                 ScoreChart(score = report.mainScore * 100)
             } else {
-                Text(text = "No Score found in Database. Consider re-scanning")
+                Text(text = "No Score found in Database. Consider re-scanning", textAlign = TextAlign.Center)
             }
         }
     }
