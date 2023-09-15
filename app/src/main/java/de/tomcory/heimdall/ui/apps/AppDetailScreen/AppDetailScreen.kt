@@ -1,4 +1,4 @@
-package de.tomcory.heimdall.ui.apps
+package de.tomcory.heimdall.ui.apps.AppDetailScreen
 
 import android.content.Context
 import androidx.compose.foundation.Image

@@ -1,4 +1,4 @@
-package de.tomcory.heimdall.ui.apps
+package de.tomcory.heimdall.ui.apps.AppDetailScreen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ElevatedCard

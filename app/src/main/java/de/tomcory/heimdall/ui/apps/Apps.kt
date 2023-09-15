@@ -19,15 +19,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -43,6 +40,7 @@ import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.scanner.code.ScanManager
+import de.tomcory.heimdall.ui.apps.AppDetailScreen.NewAppDetailScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -120,9 +118,8 @@ fun AppListItem(appWithReports: AppWithReports, modifier: Modifier) {
         },
         trailingContent = {
             val score: Double = appWithReports.reports.lastOrNull()?.mainScore ?: 0.76
-            val green: Int = (155 * score).toInt()
-            val red: Int = (255 * (1 - score)).toInt()
-            Text(text = "${(score * 100).toInt()}", style = MaterialTheme.typography.displaySmall.merge(TextStyle(color = Color(red, green, 0), textAlign = TextAlign.Center)))
+            SmallScoreIndicator(score = score)
+
         },
         modifier = modifier
     )
@@ -276,7 +273,9 @@ fun AppListItemPreview(){
     val appWithReports = AppWithReports(app, listOf(report))
     AppListItem(
         appWithReports,
-        Modifier.height(60.dp).fillMaxWidth()
+        Modifier
+            .height(60.dp)
+            .fillMaxWidth()
         )
 }
 

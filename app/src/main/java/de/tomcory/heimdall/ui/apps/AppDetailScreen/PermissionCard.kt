@@ -1,4 +1,4 @@
-package de.tomcory.heimdall.ui.apps
+package de.tomcory.heimdall.ui.apps.AppDetailScreen
 
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.tomcory.heimdall.ui.apps.DonutChart
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)

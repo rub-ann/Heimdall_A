@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -80,7 +81,7 @@ fun UICardContent(app: App, pm: PackageManager) {
         pm.getPackageInfo(app.packageName, 4096)
     }
 
-    val permProts = pkgInfo.requestedPermissions.map { perm ->
+    val permProts = pkgInfo.requestedPermissions?.map { perm ->
         try {
             pm.getPermissionInfo(perm, PackageManager.GET_META_DATA).protection
         } catch (e: Exception) {
@@ -88,32 +89,39 @@ fun UICardContent(app: App, pm: PackageManager) {
             PermissionInfo.PROTECTION_NORMAL
         }
     }
+    
+    if (permProts != null) {
 
-    val countDangerous = permProts.count { perm -> perm == PermissionInfo.PROTECTION_DANGEROUS }
 
-    val countSignature = permProts.count { perm -> perm == PermissionInfo.PROTECTION_SIGNATURE }
+        val countDangerous = permProts.count { perm -> perm == PermissionInfo.PROTECTION_DANGEROUS }
 
-    val countNormal = permProts.count { perm -> perm == PermissionInfo.PROTECTION_NORMAL }
+        val countSignature = permProts.count { perm -> perm == PermissionInfo.PROTECTION_SIGNATURE }
 
-    Column(
-        modifier = Modifier.padding(12.dp, 12.dp)
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
+        val countNormal = permProts.count { perm -> perm == PermissionInfo.PROTECTION_NORMAL }
 
-        DonutChart(
-            values = listOf(
-                countDangerous.toFloat(),
-                countNormal.toFloat(),
-                countSignature.toFloat()
-            ),
-            legend = listOf("Dangerous", "Normal", "Signature"),
-            size = 150.dp,
-            colors = listOf(
-                MaterialTheme.colorScheme.primary,
-                MaterialTheme.colorScheme.secondary,
-                MaterialTheme.colorScheme.tertiary
+        Column(
+            modifier = Modifier.padding(12.dp, 12.dp)
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            DonutChart(
+                values = listOf(
+                    countDangerous.toFloat(),
+                    countNormal.toFloat(),
+                    countSignature.toFloat()
+                ),
+                legend = listOf("Dangerous", "Normal", "Signature"),
+                size = 150.dp,
+                colors = listOf(
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.secondary,
+                    MaterialTheme.colorScheme.tertiary
+                )
             )
-        )
+        }
+    } else{
+        // No Permission info found
+        Text(text = "No permission information found.")
     }
 }
 

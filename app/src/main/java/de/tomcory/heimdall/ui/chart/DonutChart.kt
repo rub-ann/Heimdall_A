@@ -48,29 +48,49 @@ fun DonutChart(
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
-            Canvas(
-                modifier = Modifier
-                    .size(size)
-            ) {
+        Row(
+            modifier = Modifier.height(size),
+            horizontalArrangement = Arrangement.SpaceEvenly) {
+            Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
+                Canvas(
+                    modifier = Modifier
+                        .size(size)
+                ) {
 
-                var arcRadius = size.toPx() - thickness.toPx()
-                var startAngle = -90f
+                    val arcRadius = size.toPx() - thickness.toPx()
+                    var startAngle = -90f
 
-                drawCircle(
-                    color = backgroundCircleColor,
-                    radius = arcRadius / 2,
-                    style = Stroke(width = thickness.toPx(), cap = StrokeCap.Butt)
-                )
+                    drawCircle(
+                        color = backgroundCircleColor,
+                        radius = arcRadius / 2,
+                        style = Stroke(width = thickness.toPx(), cap = StrokeCap.Butt)
+                    )
 
-                for (i in values.indices) {
+                    for (i in values.indices) {
 
-                    //arcRadius -= gapBetweenCircles.toPx()
+                        //arcRadius -= gapBetweenCircles.toPx()
+
+                        drawArc(
+                            color = colors[i],
+                            startAngle = startAngle,
+                            sweepAngle = sweepAngles[i] * -1,
+                            useCenter = false,
+                            style = Stroke(width = thickness.toPx(), cap = StrokeCap.Round),
+                            size = Size(arcRadius, arcRadius),
+                            topLeft = Offset(
+                                x = (size.toPx() - arcRadius) / 2,
+                                y = (size.toPx() - arcRadius) / 2
+                            )
+                        )
+
+                        startAngle -= sweepAngles[i]
+
+                    }
 
                     drawArc(
-                        color = colors[i],
+                        color = colors[0],
                         startAngle = startAngle,
-                        sweepAngle = sweepAngles[i] * -1,
+                        sweepAngle = sweepAngles[0] * -0.5f,
                         useCenter = false,
                         style = Stroke(width = thickness.toPx(), cap = StrokeCap.Round),
                         size = Size(arcRadius, arcRadius),
@@ -80,35 +100,28 @@ fun DonutChart(
                         )
                     )
 
-                    startAngle -= sweepAngles[i]
-
                 }
-
-                drawArc(
-                    color = colors[0],
-                    startAngle = startAngle,
-                    sweepAngle = sweepAngles[0] * -0.5f,
-                    useCenter = false,
-                    style = Stroke(width = thickness.toPx(), cap = StrokeCap.Round),
-                    size = Size(arcRadius, arcRadius),
-                    topLeft = Offset(
-                        x = (size.toPx() - arcRadius) / 2,
-                        y = (size.toPx() - arcRadius) / 2
+                Box {
+                    Text(
+                        text = stringifyFloat(total),
+                        style = MaterialTheme.typography.displayMedium
                     )
-                )
-
+                }
             }
 
-            Box {
-                Text(text = stringifyFloat(total), style = MaterialTheme.typography.displayMedium)
-            }
-        }
+            Spacer(modifier = Modifier.width(4.dp + (0.5f * thickness.value).dp))
 
-        Spacer(modifier = Modifier.height(4.dp + (0.5f * thickness.value).dp))
-
-        Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
-            for (i in values.indices) {
-                DisplayLegend(value = values[values.size - 1 - i], color = colors[values.size - 1 - i], legend = legend[values.size - 1 - i])
+            Column(
+                verticalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxHeight()
+            ) {
+                for (i in values.indices) {
+                    DisplayLegend(
+                        value = values[values.size - 1 - i],
+                        color = colors[values.size - 1 - i],
+                        legend = legend[values.size - 1 - i]
+                    )
+                }
             }
         }
     }

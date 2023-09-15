@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import de.tomcory.heimdall.ui.apps.AppDetailScreen.LibraryCard
+import de.tomcory.heimdall.ui.apps.AppDetailScreen.PermissionCard
 import java.text.SimpleDateFormat
 import java.util.*
 
