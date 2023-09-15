@@ -1,8 +1,5 @@
 package de.tomcory.heimdall.ui.apps
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,7 +9,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,12 +21,13 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
-import de.tomcory.heimdall.persistence.database.entity.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.util.OsUtils.uninstallPackage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.internal.applyConnectionSpec
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,16 +131,11 @@ fun NewAppDetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
             items(modules){module ->
-                module.UICard(app = app, context = context)
+                module.buildUICard(app = app, context = context)
                 Spacer(modifier = Modifier.height(9.dp))
             }
         }
     }
-}
-
-@Composable
-fun AppDetailList(){
-    
 }
 
 

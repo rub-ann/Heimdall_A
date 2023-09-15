@@ -4,10 +4,7 @@ import android.content.Context
 import android.content.pm.PackageInfo
 import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.evaluator.modules.ModuleFactory
-import de.tomcory.heimdall.evaluator.modules.StaticPermissionsScore
-import de.tomcory.heimdall.evaluator.modules.TrackerScore
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
-import de.tomcory.heimdall.persistence.database.entity.AppXReport
 import de.tomcory.heimdall.persistence.database.entity.Report
 import timber.log.Timber
 
@@ -59,11 +56,6 @@ object Evaluator {
         val report = Report(packageName = packageName, timestamp = System.currentTimeMillis(), mainScore = totalScore)
         Timber.d("$report")
         HeimdallDatabase.instance?.reportDao?.insertReport(report)
-            ?.let { rowId ->
-                HeimdallDatabase.instance?.reportDao?.getReportByRowId(rowId)?.let {
-                HeimdallDatabase.instance?.appXReportDao?.insert(AppXReport(packageName, it))
-            }
-        }
-
     }
+
 }

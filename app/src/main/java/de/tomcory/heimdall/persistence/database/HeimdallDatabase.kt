@@ -6,7 +6,6 @@ import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 import de.tomcory.heimdall.persistence.database.dao.AppDao
 import de.tomcory.heimdall.persistence.database.dao.AppXPermissionDao
-import de.tomcory.heimdall.persistence.database.dao.AppXReportDao
 import de.tomcory.heimdall.persistence.database.dao.AppXTrackerDao
 import de.tomcory.heimdall.persistence.database.dao.ConnectionDao
 import de.tomcory.heimdall.persistence.database.dao.PermissionDao
@@ -17,7 +16,6 @@ import de.tomcory.heimdall.persistence.database.dao.SessionDao
 import de.tomcory.heimdall.persistence.database.dao.TrackerDao
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.AppXPermission
-import de.tomcory.heimdall.persistence.database.entity.AppXReport
 import de.tomcory.heimdall.persistence.database.entity.AppXTracker
 import de.tomcory.heimdall.persistence.database.entity.Connection
 import de.tomcory.heimdall.persistence.database.entity.Permission
@@ -33,7 +31,6 @@ import de.tomcory.heimdall.persistence.database.entity.Tracker
         App::class,
         AppXPermission::class,
         AppXTracker::class,
-        AppXReport::class,
         Connection::class,
         Permission::class,
         Request::class,
@@ -47,7 +44,6 @@ abstract class HeimdallDatabase : RoomDatabase() {
     abstract val appDao: AppDao?
     abstract val appXPermissionDao: AppXPermissionDao?
     abstract val appXTrackerDao: AppXTrackerDao?
-    abstract val appXReportDao: AppXReportDao?
     abstract val connectionDao: ConnectionDao?
     abstract val permissionDao: PermissionDao?
     abstract val requestDao: RequestDao?

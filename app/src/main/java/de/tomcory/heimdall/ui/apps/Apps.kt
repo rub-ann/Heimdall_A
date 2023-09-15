@@ -39,8 +39,8 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.R
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
-import de.tomcory.heimdall.persistence.database.entity.AppWithReports
 import de.tomcory.heimdall.scanner.code.ScanManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -149,6 +149,7 @@ fun AppsScreen(navController: NavHostController?) {
 
     LaunchedEffect(key1 = null, block = {
         apps = getAppsWithReport(context)
+        apps.sortedByDescending { it.app.packageName }
         Timber.d("fetched ${apps.size} apps")
         loadingApps = false
     })
@@ -286,17 +287,13 @@ suspend fun getApps(context: Context): List<App> = withContext(Dispatchers.IO) {
 }
 
 suspend fun getAppsWithReport(context: Context): List<AppWithReports> = withContext(Dispatchers.IO) {
-    val apps = HeimdallDatabase.instance?.appDao?.getAll() ?: listOf()
-    val appsWithReports = mutableListOf<AppWithReports>()
+    val apps = HeimdallDatabase.instance?.appDao?.getAllAppWithReports() ?: listOf<AppWithReports>()
     apps.map {
-        if(it.icon == null && it.isInstalled) {
-            it.icon = ScanManager.getAppIcon(context, it.packageName)
+        if(it.app.icon == null && it.app.isInstalled) {
+            it.app.icon = ScanManager.getAppIcon(context, it.app.packageName)
         }
-        val reports = HeimdallDatabase.instance?.reportDao?.getAppWithReports(it.packageName) ?: listOf()
-        appsWithReports.add(AppWithReports(it, reports))
     }
-    appsWithReports.sortedByDescending { it.reports.lastOrNull()?.mainScore ?: 0.0 }
-    return@withContext appsWithReports
+    return@withContext apps
 }
 
 
