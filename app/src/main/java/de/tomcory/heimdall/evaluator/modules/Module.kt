@@ -17,7 +17,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
-import de.tomcory.heimdall.evaluator.SubScore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +29,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.tomcory.heimdall.evaluator.SubReport
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 
 abstract class Module {
@@ -38,11 +39,11 @@ abstract class Module {
 
     val defaultWeight:Double = 1.0
 
-    abstract suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate:Boolean = false): Result<SubScore>
+    abstract suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate:Boolean = false): Result<SubReport>
 
-    // TODO work with SubScores
+    // TODO work with SubReports
     @Composable
-    abstract fun BuildUICard(app: App, context: Context)
+    abstract fun BuildUICard(app: AppWithReports)
 
     @Composable
     fun UICard(

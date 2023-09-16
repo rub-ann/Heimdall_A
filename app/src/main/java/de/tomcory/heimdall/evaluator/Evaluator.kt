@@ -25,7 +25,7 @@ object Evaluator {
             return null
         }
         Timber.d("Evaluating score of ${app.packageName}")
-        val scores = mutableListOf<SubScore>()
+        val scores = mutableListOf<SubReport>()
         var n = this.modules.size
 
         for (module in this.modules) {
@@ -52,7 +52,7 @@ object Evaluator {
     }
 
 
-    private suspend fun createReport(packageName:String, totalScore: Double, subScores: List<SubScore>): Report {
+    private suspend fun createReport(packageName:String, totalScore: Double, subScores: List<SubReport>): Report {
         val report = Report(packageName = packageName, timestamp = System.currentTimeMillis(), mainScore = totalScore)
         Timber.d("$report")
         HeimdallDatabase.instance?.reportDao?.insertReport(report)

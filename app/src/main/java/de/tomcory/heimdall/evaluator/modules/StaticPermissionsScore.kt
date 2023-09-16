@@ -8,24 +8,32 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import de.tomcory.heimdall.evaluator.SubScore
+import de.tomcory.heimdall.evaluator.SubReport
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.ui.apps.DonutChart
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 
 class StaticPermissionsScore: Module() {
     override val name: String = "StaticPermissionScore"
+    val label: String = "Permissions"
+
     override suspend fun calculateOrLoad(
         app: App,
         context: Context,
         forceRecalculate: Boolean
-    ): Result<SubScore> {
+    ): Result<SubReport> {
+
+
         val pm = context.packageManager
         val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pm.getPackageInfo(app.packageName, PackageManager.PackageInfoFlags.of(PackageManager.GET_PERMISSIONS.toLong()))
@@ -50,15 +58,17 @@ class StaticPermissionsScore: Module() {
 
         val score = maxOf(1f - countDangerous *0.1f - countSignature *0.05f - countNormal * 0.01f, 0f)
 
-        return Result.success(SubScore(this.name, score))
+        val details = Json.encodeToString(PermissionInfo(countDangerous, countSignature, countNormal))
+        return Result.success(SubReport(this.name, score, additionalDetails = details))
     }
 
     @Composable
-    override fun BuildUICard(app: App, context: Context) {
+    override fun BuildUICard(app: AppWithReports) {
         super.UICard(
-            title = "Permissions",
+            title = this.label,
             infoText = "This modules inspects the permissions the app might request at some point. These are categorized into 'Dangerous', 'Signature' and 'Normal'"
         ){
+            val context = LocalContext.current
             UICardContent(app, context.packageManager)
         }
     }
@@ -69,9 +79,9 @@ class StaticPermissionsScore: Module() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UICardContent(app: App, pm: PackageManager) {
+fun UICardContent(appWithReports: AppWithReports, pm: PackageManager) {
+    val app = appWithReports.app
     val pkgInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         pm.getPackageInfo(
             app.packageName,
@@ -124,4 +134,7 @@ fun UICardContent(app: App, pm: PackageManager) {
         Text(text = "No permission information found.")
     }
 }
+
+@Serializable
+data class PermissionInfo(val dangerousPermissionCount: Int, val signaturePermissionCount: Int, val normalPermissionCount: Int)
 

@@ -21,31 +21,39 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import de.tomcory.heimdall.evaluator.SubScore
+import de.tomcory.heimdall.evaluator.SubReport
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Tracker
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class TrackerScore: Module() {
     override val name: String = "TrackerScore"
+    val label = "Tracker Libraries"
 
-    override suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate: Boolean): Result<SubScore> {
+    override suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate: Boolean): Result<SubReport> {
         // TODO implement lazy loading from Database
         val trackers = HeimdallDatabase.instance?.appXTrackerDao
             ?.getAppWithTrackers(app.packageName)?.trackers ?: listOf()
 
         val score = maxOf(1f - trackers.size * 0.2f, 0f)
-        return Result.success(SubScore(this.name, score))
+        val additionalDetails:String = Json.encodeToString(trackers)
+        return Result.success(SubReport(this.name, score, additionalDetails = additionalDetails))
     }
 
     @Composable
-    override fun BuildUICard(app: App, context: Context) {
+    override fun BuildUICard(app: AppWithReports) {
         super.UICard(
-            title = "Tracker Libraries",
+            title = this.label,
             infoText = "This modules scans for Libraries in the apps code that are know to relate to tracking and lists them."
         ){
-            LibraryUICardContent(app = app, context = context)
+            val context = LocalContext.current
+            LibraryUICardContent(appWithReports = app, context = context)
         }
     }
 
@@ -55,7 +63,8 @@ class TrackerScore: Module() {
 }
 
 @Composable
-fun LibraryUICardContent(app: App, context: Context) {
+fun LibraryUICardContent(appWithReports: AppWithReports, context: Context) {
+    val app = appWithReports.app
     var trackers = listOf<Tracker>()
     var loadingTrackers by remember { mutableStateOf(true) }
 
@@ -90,3 +99,6 @@ fun LibraryUICardContent(app: App, context: Context) {
         }
     }
 }
+
+@Serializable
+data class TrackerList(val trackerList: List<Tracker> = listOf())
