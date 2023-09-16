@@ -1,4 +1,4 @@
-package de.tomcory.heimdall.ui.traffic
+package de.tomcory.heimdall.ui.home
 
 import android.app.Activity
 import android.content.ComponentName
@@ -56,7 +56,7 @@ import java.net.InetSocketAddress
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrafficScreen() {
+fun HomeScreen() {
     var openPreferences by remember { mutableStateOf(false) }
     var proxyRunning by remember { mutableStateOf(false) }
     var vpnRunning by remember { mutableStateOf(false) }
@@ -224,6 +224,6 @@ suspend fun stopProxyAndVpn(context: Context, proxyServer: HeimdallHttpProxyServ
 
 @Preview(showBackground = true)
 @Composable
-fun TrafficScreenPreview() {
-    TrafficScreen()
+fun HomeScreenPreview() {
+    HomeScreen()
 }

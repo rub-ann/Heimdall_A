@@ -1,6 +1,5 @@
-package de.tomcory.heimdall.ui.traffic
+package de.tomcory.heimdall.ui.home
 
-import android.graphics.drawable.Drawable
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*

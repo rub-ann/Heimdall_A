@@ -1,14 +1,23 @@
-package de.tomcory.heimdall.ui.traffic
+package de.tomcory.heimdall.ui.home
 
+import android.widget.ImageButton
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOutExpo
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -21,7 +30,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -33,7 +45,7 @@ fun DeviceOverview(
     size: Dp = 240.dp,
     bottomGap: Float = 0f
 ) {
-    var animateFloat = remember { Animatable(0f) }
+    val animateFloat = remember { Animatable(0f) }
     LaunchedEffect(animateFloat) {
         animateFloat.animateTo(
             targetValue = 1f,
@@ -45,13 +57,20 @@ fun DeviceOverview(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Box(modifier = Modifier.scale(2f)) {
+            Box() {
                 //brush = Brush.linearGradient(colors = textGradientColors)
                 //style = MaterialTheme.typography.displayLarge
-                Image(painter = painterResource(R.drawable.ic_heimdall_round), contentDescription = "Heimdall App Icon")
+                Image(
+                    painter = painterResource(R.drawable.ic_heimdall_round),
+                    contentDescription = "Heimdall App Icon",
+                    modifier = Modifier
+                        .scale(2.0f)
+                        .clickable { /*TODO*/ })
             }
             Canvas(
-                modifier = Modifier.size(size).align(Alignment.Center)
+                modifier = Modifier
+                    .size(size)
+                    .align(Alignment.Center)
             ) {
 
                 val arcRadius = size.toPx() - thickness.toPx()
@@ -71,6 +90,13 @@ fun DeviceOverview(
                     alpha = 0.9f
                 )
             }
+        }
+        Spacer(modifier = Modifier.size(10.dp))
+        Row(modifier = Modifier
+            .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ){
+            Text(text = "Tap to Scan!", style = MaterialTheme.typography.titleSmall.merge(TextStyle(fontStyle = FontStyle.Italic)))
         }
     }
 }
