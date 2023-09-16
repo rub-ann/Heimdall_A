@@ -1,6 +1,7 @@
 package de.tomcory.heimdall.ui.apps.AppDetailScreen
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,12 +22,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.evaluator.Evaluator
+import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
-import de.tomcory.heimdall.util.OsUtils.uninstallPackage
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,20 +36,15 @@ import timber.log.Timber
 fun NewAppDetailScreen(
     appWithReports: AppWithReports,
     onDismissRequest: () -> Unit,
+    factory: AppDetailViewModelFactory = AppDetailViewModelFactory(appWithReports),
+    appDetailViewModel: AppDetailViewModel = viewModel(factory = factory),
+    context: Context = LocalContext.current,
+    userRescanApp: () -> Unit = {appDetailViewModel.rescanApp(context)},
+    userUninstallApp : ()-> Unit = {appDetailViewModel.uninstallApp(context)}
 ) {
-    val app = appWithReports.app
-    val context = LocalContext.current
 
-    val report by remember {
-        mutableStateOf(appWithReports.reports.lastOrNull())
-    }
+    val appDetailUiState by appDetailViewModel.uiState.collectAsState()
 
-    val packageLabel =
-        app.label
-    val packageName = app.packageName
-    val packageIcon = app.icon
-
-    val modules = Evaluator.modules
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     Timber.d("Showing Details of $appWithReports")
@@ -56,17 +55,17 @@ fun NewAppDetailScreen(
             TopAppBar(
                 modifier = Modifier.padding(0.dp, 0.dp, 12.dp, 0.dp),
                 title = {
-                    ListItem(headlineContent = { Text(text = packageLabel) },
+                    ListItem(headlineContent = { Text(text = appDetailUiState.packageLabel) },
                         supportingContent = {
                             Text(
-                                text = packageName,
+                                text = appDetailUiState.packageName,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         },
                         leadingContent = {
                             Image(
-                                painter = rememberDrawablePainter(drawable = packageIcon),
+                                painter = rememberDrawablePainter(drawable = appDetailUiState.packageIcon),
                                 contentDescription = "App icon",
                                 modifier = Modifier.size(40.dp)
                             )
@@ -94,12 +93,12 @@ fun NewAppDetailScreen(
                     ) {
                         DropdownMenuItem(
                             text = {  Text("Rescan") },
-                            onClick = { /* Handle refresh! */ }
+                            onClick = { userRescanApp() }
                         )
                         DropdownMenuItem(
                             text = { Text("Uninstall") },
                             onClick = {
-                                uninstallPackage(context, app.packageName)
+                                userUninstallApp()
                             }
                         )
                         Divider()
@@ -111,7 +110,7 @@ fun NewAppDetailScreen(
                 }
             )
         },
-        floatingActionButton = { RescanFloatingActionButton() },
+        floatingActionButton = { RescanFloatingActionButton(userRescanApp) },
 
     ) { padding ->
         LazyColumn(
@@ -125,24 +124,35 @@ fun NewAppDetailScreen(
             }
 
             item {
-                ScoreCard(report = report)
+                ScoreCard(report = appDetailUiState.report)
             }
 
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
-            items(modules){module ->
-                module.BuildUICard(app = app, context = context)
+            items(appDetailUiState.modules){module ->
+                module.BuildUICard(app = appWithReports)
                 Spacer(modifier = Modifier.height(9.dp))
             }
         }
     }
 }
 
-suspend fun rescanApp(packageName: String, context: Context){
-    // TODO start coroutine
-    Evaluator.evaluateApp(packageName, context)
-}
+
+
+data class AppDetailScreeUIState(
+    val appWithReports:AppWithReports = AppWithReports(App("com.test.package", "TestPackage", "0.0.1", 1), listOf(Report("com.test.package", 1234, 0.76))),
+    val app:App = appWithReports.app,
+
+    var report: Report? = appWithReports.reports.lastOrNull(),
+
+    val packageLabel:String = app.label,
+    val packageName:String = app.packageName,
+    val packageIcon: Drawable? = app.icon,
+
+    val modules: List<Module> = Evaluator.modules,
+    var dropdownExpanded: MutableState<Boolean> = mutableStateOf(false)
+)
 
 
 @Preview

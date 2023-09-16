@@ -11,10 +11,13 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Preview
 @Composable
-fun RescanFloatingActionButton() {
+fun RescanFloatingActionButton(onClick: ()->Unit = {}) {
     ExtendedFloatingActionButton(
         text = { Text(text = "Rescan App") },
         icon = { Icon(Icons.Filled.Refresh, contentDescription = null)},
-        onClick = { scaleIn() },
+        onClick = {
+            scaleIn()
+            onClick()
+        },
     )
 }
