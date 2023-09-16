@@ -1,30 +1,39 @@
 package de.tomcory.heimdall.persistence.database.dao
 
 import androidx.room.Dao
+import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Relation
 import androidx.room.Transaction
+import de.tomcory.heimdall.persistence.database.entity.SubReport
 import de.tomcory.heimdall.persistence.database.entity.Report
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReportDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE, entity = Report::class)
     suspend fun insertReport(report: Report): Long
 
     @Query("SELECT * FROM Report ORDER BY timestamp DESC")
     fun getAll(): List<Report>
 
-    @Query("SELECT reportId FROM Report WHERE rowid = :rowId")
-    fun getReportByRowId(rowId: Long): Int
-
     @Transaction
-    @Query("SELECT * FROM Report WHERE packageName = :packageName ORDER BY timestamp ASC")
-    fun getAppWithReports(packageName: String): List<Report>
+    @Query("SELECT * FROM Report WHERE packageName = :reportId ORDER BY timestamp DESC")
+    fun getReportWithSubReports(reportId: Int): ReportWithSubReport
 
     @Query("Select * FROM Report")
     fun getAllObservable(): Flow<List<Report>>
 }
 
+data class ReportWithSubReport(
+    @Embedded
+    val report: Report,
+    @Relation(
+        parentColumn = "packageName",
+        entityColumn = "packageName"
+    )
+    val subReports: List<SubReport>
+)
 

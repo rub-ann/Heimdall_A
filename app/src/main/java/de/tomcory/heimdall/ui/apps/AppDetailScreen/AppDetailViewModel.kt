@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.ViewModelFactoryDsl
 import de.tomcory.heimdall.evaluator.Evaluator
-import de.tomcory.heimdall.persistence.database.dao.AppWithReports
+import de.tomcory.heimdall.persistence.database.dao.AppWithReport
 import de.tomcory.heimdall.util.OsUtils.uninstallPackage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,21 +16,22 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
-class AppDetailViewModelFactory(private val appWithReports: AppWithReports) : ViewModelProvider.Factory {
+class AppDetailViewModelFactory(private val appWithReport: AppWithReport) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AppDetailViewModel(appWithReports) as T
+        return AppDetailViewModel(appWithReport) as T
     }
 }
 
 @ViewModelFactoryDsl
-class AppDetailViewModel(appWithReports: AppWithReports) : ViewModel() {
+class AppDetailViewModel(appWithReports: AppWithReport) : ViewModel() {
     private val _uiState = MutableStateFlow(AppDetailScreeUIState(appWithReports))
     val uiState: StateFlow<AppDetailScreeUIState> = _uiState.asStateFlow()
+
 
     fun rescanApp(context: Context){
         CoroutineScope(Dispatchers.IO).launch {
             Timber.d("Rescanned ${uiState.value.packageName}")
-            val report = Evaluator.evaluateApp(uiState.value.packageName, context)
+            val report = Evaluator.evaluateApp(uiState.value.packageName, context)?.first
             if (report != null){
                 Timber.d("Updated UI with new report")
                 _uiState.value.report = report

@@ -36,7 +36,7 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.R
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
-import de.tomcory.heimdall.persistence.database.dao.AppWithReports
+import de.tomcory.heimdall.persistence.database.dao.AppWithReport
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.scanner.code.ScanManager
@@ -46,7 +46,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 @Composable
-fun AppInfoList(paddingValues: PaddingValues, apps: List<AppWithReports>) {
+fun AppInfoList(paddingValues: PaddingValues, apps: List<AppWithReport>) {
     if (apps.isEmpty()){
         Box(modifier = Modifier
             .fillMaxSize()
@@ -56,7 +56,7 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<AppWithReports>) {
         }
     } else {
         LazyColumn(modifier = Modifier.padding(paddingValues)) {
-            items(apps) {
+            items(apps){
                 var showAppDetailDialog by remember { mutableStateOf(false) }
                 AppListItem(
                     appWithReports = it,
@@ -71,7 +71,7 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<AppWithReports>) {
                         properties = DialogProperties(usePlatformDefaultWidth = false)
                     ) {
                         NewAppDetailScreen(
-                            appWithReports = it,
+                            appWithReport = it,
                             onDismissRequest = { showAppDetailDialog = false })
                     }
                 }
@@ -81,7 +81,7 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<AppWithReports>) {
 }
 
 @Composable
-fun AppListItem(appWithReports: AppWithReports, modifier: Modifier) {
+fun AppListItem(appWithReports: AppWithReport, modifier: Modifier) {
     val app = appWithReports.app
     ListItem(
         headlineContent = {
@@ -117,8 +117,10 @@ fun AppListItem(appWithReports: AppWithReports, modifier: Modifier) {
             Image(painter = painter, contentDescription = "App icon", modifier = Modifier.size(40.dp), colorFilter = colorFilter)
         },
         trailingContent = {
-            val score: Double = appWithReports.reports.lastOrNull()?.mainScore ?: 0.76
-            SmallScoreIndicator(score = score)
+            val score: Double? = appWithReports.report?.mainScore
+            score?.let {
+                SmallScoreIndicator(score = score)
+            }
 
         },
         modifier = modifier
@@ -141,7 +143,7 @@ fun AppsScreen(navController: NavHostController?) {
     val context = LocalContext.current
     var loadingApps by remember { mutableStateOf(true) }
 
-    var apps by remember { mutableStateOf(listOf<AppWithReports>()) }
+    var apps by remember { mutableStateOf(listOf<AppWithReport>()) }
 
     LaunchedEffect(key1 = null) {
         apps = getAppsWithReport(context).sorted()
@@ -217,7 +219,7 @@ fun AppsScreenPreview() {
 
 @Composable
 fun AppInfoCard(app: App) {
-    var isSelected by remember { mutableStateOf(false) }
+    val isSelected by remember { mutableStateOf(false) }
     val surfaceColor by animateColorAsState(
         if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary, label = "surfaceColorSelected"
     )
@@ -270,7 +272,7 @@ fun AppInfoCard(app: App) {
 fun AppListItemPreview(){
     val app = App("test.package.com", "TestApp", "0.1", 1 )
     val report = Report("test.package.com", timestamp = 1234, mainScore = 0.76)
-    val appWithReports = AppWithReports(app, listOf(report))
+    val appWithReports = AppWithReport(app, report)
     AppListItem(
         appWithReports,
         Modifier
@@ -289,7 +291,7 @@ suspend fun getApps(context: Context): List<App> = withContext(Dispatchers.IO) {
     return@withContext apps
 }
 
-suspend fun getAppsWithReport(context: Context): List<AppWithReports> = withContext(Dispatchers.IO) {
+suspend fun getAppsWithReport(context: Context): List<AppWithReport> = withContext(Dispatchers.IO) {
     var apps = HeimdallDatabase.instance?.appDao?.getAllAppWithReports() ?: listOf()
     apps = apps.map {
         if(it.app.icon == null && it.app.isInstalled) {

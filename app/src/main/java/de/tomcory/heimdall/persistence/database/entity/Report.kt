@@ -6,21 +6,19 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Report constructor(
+        @PrimaryKey
+        @ColumnInfo(index = true)
         val packageName:String,
+
+        @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP")
         val timestamp: Long,
-        //val subScores: List<SubScore>, TODO()
         val mainScore: Double
 ) {
-        @PrimaryKey (autoGenerate = true)
-        @ColumnInfo(index = true)
-        var reportId: Int = 0
-
         override fun toString(): String {
                 return """
                         Score Evaluation Report of $packageName:
-                                ID: $reportId    timestamp: $timestamp
+                                timestamp: $timestamp
                                 Score: $mainScore
-                                SubScores: // not yet stored part of DB because difficult to store in DB
                 """.trimIndent()
         }
 }

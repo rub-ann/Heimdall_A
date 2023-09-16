@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
+import de.tomcory.heimdall.persistence.database.entity.SubReport
 import de.tomcory.heimdall.persistence.database.dao.AppDao
 import de.tomcory.heimdall.persistence.database.dao.AppXPermissionDao
 import de.tomcory.heimdall.persistence.database.dao.AppXTrackerDao
@@ -13,6 +14,7 @@ import de.tomcory.heimdall.persistence.database.dao.ReportDao
 import de.tomcory.heimdall.persistence.database.dao.RequestDao
 import de.tomcory.heimdall.persistence.database.dao.ResponseDao
 import de.tomcory.heimdall.persistence.database.dao.SessionDao
+import de.tomcory.heimdall.persistence.database.dao.SubReportDao
 import de.tomcory.heimdall.persistence.database.dao.TrackerDao
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.AppXPermission
@@ -37,6 +39,7 @@ import de.tomcory.heimdall.persistence.database.entity.Tracker
         Response::class,
         Session::class,
         Tracker::class,
+        SubReport::class,
         Report::class],
     exportSchema = false
 )
@@ -51,6 +54,7 @@ abstract class HeimdallDatabase : RoomDatabase() {
     abstract val sessionDao: SessionDao?
     abstract val trackerDao: TrackerDao?
     abstract val reportDao: ReportDao?
+    abstract val subReportDao: SubReportDao?
 
     companion object {
         var instance: HeimdallDatabase? = null

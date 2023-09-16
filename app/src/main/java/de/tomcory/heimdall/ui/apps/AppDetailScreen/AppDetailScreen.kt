@@ -26,7 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.evaluator.modules.Module
-import de.tomcory.heimdall.persistence.database.dao.AppWithReports
+import de.tomcory.heimdall.persistence.database.dao.AppWithReport
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import timber.log.Timber
@@ -34,9 +34,9 @@ import timber.log.Timber
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewAppDetailScreen(
-    appWithReports: AppWithReports,
+    appWithReport: AppWithReport,
     onDismissRequest: () -> Unit,
-    factory: AppDetailViewModelFactory = AppDetailViewModelFactory(appWithReports),
+    factory: AppDetailViewModelFactory = AppDetailViewModelFactory(appWithReport),
     appDetailViewModel: AppDetailViewModel = viewModel(factory = factory),
     context: Context = LocalContext.current,
     userRescanApp: () -> Unit = {appDetailViewModel.rescanApp(context)},
@@ -47,7 +47,7 @@ fun NewAppDetailScreen(
 
     var dropdownExpanded by remember { mutableStateOf(false) }
 
-    Timber.d("Showing Details of $appWithReports")
+    Timber.d("Showing Details of $appWithReport")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -131,7 +131,7 @@ fun NewAppDetailScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
             items(appDetailUiState.modules){module ->
-                module.BuildUICard(app = appWithReports)
+                module.BuildUICard(report = appWithReport.report)
                 Spacer(modifier = Modifier.height(9.dp))
             }
         }
@@ -141,10 +141,10 @@ fun NewAppDetailScreen(
 
 
 data class AppDetailScreeUIState(
-    val appWithReports:AppWithReports = AppWithReports(App("com.test.package", "TestPackage", "0.0.1", 1), listOf(Report("com.test.package", 1234, 0.76))),
-    val app:App = appWithReports.app,
+    val appWithReport:AppWithReport = AppWithReport(App("com.test.package", "TestPackage", "0.0.1", 1), Report("com.test.package", 1234, 0.76)),
+    val app:App = appWithReport.app,
 
-    var report: Report? = appWithReports.reports.lastOrNull(),
+    var report: Report? = appWithReport.report,
 
     val packageLabel:String = app.label,
     val packageName:String = app.packageName,
@@ -164,7 +164,7 @@ fun NewAppDetailScreenPreview() {
         versionName = "v0.1",
         versionCode = 0
     )
-    val reports = listOf(Report(mainScore = 0.76, timestamp = 1234, packageName = "com.test.package"))
-    NewAppDetailScreen(appWithReports = AppWithReports(app, reports), onDismissRequest = { })
+    val report = Report(mainScore = 0.76, timestamp = 1234, packageName = "com.test.package")
+    NewAppDetailScreen(appWithReport = AppWithReport(app, report), onDismissRequest = { })
 }
 

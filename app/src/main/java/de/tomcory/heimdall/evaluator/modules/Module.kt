@@ -29,9 +29,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.tomcory.heimdall.evaluator.SubReport
-import de.tomcory.heimdall.persistence.database.dao.AppWithReports
+import de.tomcory.heimdall.evaluator.ModuleResult
 import de.tomcory.heimdall.persistence.database.entity.App
+import de.tomcory.heimdall.persistence.database.entity.Report
 
 abstract class Module {
 
@@ -39,11 +39,11 @@ abstract class Module {
 
     val defaultWeight:Double = 1.0
 
-    abstract suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate:Boolean = false): Result<SubReport>
+    abstract suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate:Boolean = false): Result<ModuleResult>
 
     // TODO work with SubReports
     @Composable
-    abstract fun BuildUICard(app: AppWithReports)
+    abstract fun BuildUICard(report: Report?)
 
     @Composable
     fun UICard(

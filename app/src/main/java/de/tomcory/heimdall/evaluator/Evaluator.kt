@@ -1,11 +1,11 @@
 package de.tomcory.heimdall.evaluator
 
 import android.content.Context
-import android.content.pm.PackageInfo
 import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.evaluator.modules.ModuleFactory
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.Report
+import de.tomcory.heimdall.persistence.database.entity.SubReport
 import timber.log.Timber
 
 object Evaluator {
@@ -17,15 +17,15 @@ object Evaluator {
         this.modules = moduleFactory.registeredModules
     }
 
-    suspend fun evaluateApp(packageName: String, context: Context): Report? {
+    suspend fun evaluateApp(packageName: String, context: Context): Pair<Report, List<SubReport>>? {
 
         val app = HeimdallDatabase.instance?.appDao?.getAppByName(packageName)
         if (app == null){
-            Timber.d("Evaluation of ${packageName} failed, because Database Entry not found")
+            Timber.d("Evaluation of $packageName failed, because Database Entry not found")
             return null
         }
-        Timber.d("Evaluating score of ${app.packageName}")
-        val scores = mutableListOf<SubReport>()
+        Timber.d("Evaluating score of $packageName")
+        val results = mutableListOf<ModuleResult>()
         var n = this.modules.size
 
         for (module in this.modules) {
@@ -39,24 +39,30 @@ object Evaluator {
                 )
                 n--
                 continue
-            }
-            result.getOrNull()?.let {
-                scores.add(it)
-                Timber.d("module $module subscore: ${it.score}")
+            } else {
+                result.getOrNull()?.let {
+                    results.add(it)
+                    Timber.d("module $module result: ${it.score}")
+                }
             }
 
         }
-        val totalScore = scores.fold(0.0){sum, s -> sum + s.score * s.weight} / n
+        // TODO implement weights
+        val totalScore = results.fold(0.0){sum, s -> sum + s.score} / n
         Timber.d("evaluation complete for ${app.packageName}: $totalScore}")
-        return createReport(app.packageName, totalScore, scores)
+        return createReport(app.packageName, totalScore, results)
     }
 
 
-    private suspend fun createReport(packageName:String, totalScore: Double, subScores: List<SubReport>): Report {
+    private suspend fun createReport(packageName:String, totalScore: Double, moduleResults: MutableList<ModuleResult>): Pair<Report, List<SubReport>> {
         val report = Report(packageName = packageName, timestamp = System.currentTimeMillis(), mainScore = totalScore)
-        Timber.d("$report")
+        val subReports = moduleResults.map(){result ->
+            SubReport(result, packageName)
+        }
+        Timber.d("writing Report and SubReports to Database")
         HeimdallDatabase.instance?.reportDao?.insertReport(report)
-        return report
+        HeimdallDatabase.instance?.subReportDao?.insertSubReport(subReports)
+        return Pair(report, subReports)
     }
 
 }
