@@ -64,4 +64,7 @@ message Preferences {
 
   // indicates whether apps are evaluated on scan
   bool scan_evaluator_enable = 23;
+  // upper score threshold to categorize apps into "unacceptable", "questionable", "acceptable". everything below the threshold will be in that category
+  int32 evaluator_score_threshold_unacceptable = 24;
+  int32 evaluator_score_threshold_questionable = 25;
 }

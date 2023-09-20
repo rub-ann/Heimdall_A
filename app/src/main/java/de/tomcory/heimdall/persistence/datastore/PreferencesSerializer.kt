@@ -20,6 +20,8 @@ object PreferencesSerializer : Serializer<Preferences> {
         .setScanLibraryScannerEnable(true)
         .setScanLibraryScannerPrepopulate(true)
         .setScanEvaluatorEnable(true)
+        .setEvaluatorScoreThresholdUnacceptable(50)
+        .setEvaluatorScoreThresholdQuestionable(75)
         .build()
 
     override suspend fun readFrom(input: InputStream): Preferences {
