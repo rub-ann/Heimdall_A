@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 
 
 private val LightColors = lightColorScheme(
@@ -88,3 +90,6 @@ fun HeimdallTheme(
     content = content
   )
 }
+
+val gradientColors = listOf(Color.Cyan, Color(0xFF0066FF), Color(0xFFdd21d1) /*...*/)
+val BlueGradientBrush = Brush.linearGradient(colors = gradientColors)
