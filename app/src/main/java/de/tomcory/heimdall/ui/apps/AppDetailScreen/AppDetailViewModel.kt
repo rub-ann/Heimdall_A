@@ -45,4 +45,8 @@ class AppDetailViewModel(appWithReports: AppWithReport) : ViewModel() {
         uninstallPackage(context, uiState.value.packageName)
     }
 
+    fun updateApp(app:AppWithReport) {
+        _uiState.value = AppDetailScreeUIState(app)
+    }
+
 }

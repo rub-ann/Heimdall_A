@@ -9,6 +9,7 @@ import androidx.room.Relation
 import androidx.room.Transaction
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppDao {
@@ -31,6 +32,10 @@ interface AppDao {
     @Transaction
     @Query("SELECT * FROM App")
     suspend fun getAllAppWithReports(): List<AppWithReport>
+
+    @Transaction
+    @Query("SELECT * FROM App")
+    fun getAllAppWithReportsObservable(): Flow<List<AppWithReport>>
 
 }
 

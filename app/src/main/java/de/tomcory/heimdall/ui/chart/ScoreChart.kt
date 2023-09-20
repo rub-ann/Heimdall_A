@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Cyan
 import androidx.compose.ui.text.TextStyle
+import de.tomcory.heimdall.ui.theme.BlueGradientBrush
 
 @Preview
 @Composable
@@ -100,11 +101,8 @@ fun ScoreChart(
 
             }
             Box {
-                val textGradientColors = listOf(Cyan, Color(0xFF0066FF), Color(0xFFdd21d1) /*...*/)
-                //brush = Brush.linearGradient(colors = textGradientColors)
-                //style = MaterialTheme.typography.displayLarge
                 Text(text = score.toInt().toString(), style = MaterialTheme.typography.displayLarge.merge(
-                    TextStyle(brush = Brush.linearGradient(colors = textGradientColors))
+                    TextStyle(brush = BlueGradientBrush)
                 ), fontWeight = FontWeight.SemiBold)
             }
             Box(modifier = Modifier

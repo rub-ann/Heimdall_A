@@ -44,6 +44,7 @@ fun NewAppDetailScreen(
 ) {
 
     val appDetailUiState by appDetailViewModel.uiState.collectAsState()
+    appDetailViewModel.updateApp(appWithReport)
 
     var dropdownExpanded by remember { mutableStateOf(false) }
 
@@ -141,7 +142,7 @@ fun NewAppDetailScreen(
 
 
 data class AppDetailScreeUIState(
-    val appWithReport:AppWithReport = AppWithReport(App("com.test.package", "TestPackage", "0.0.1", 1), Report("com.test.package", 1234, 0.76)),
+    var appWithReport:AppWithReport = AppWithReport(App("com.test.package", "TestPackage", "0.0.1", 1), Report("com.test.package", 1234, 0.76)),
     val app:App = appWithReport.app,
 
     var report: Report? = appWithReport.report,
