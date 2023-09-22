@@ -91,5 +91,7 @@ fun HeimdallTheme(
   )
 }
 
-val gradientColors = listOf(Color.Cyan, Color(0xFF0066FF), Color(0xFFdd21d1) /*...*/)
-val BlueGradientBrush = Brush.linearGradient(colors = gradientColors)
+val blueGradientColors = listOf(Color.Cyan, Color(0xFF0066FF), Color(0xFFdd21d1) /*...*/)
+val grayscaleGradientColors = listOf(Color.Cyan, Color(0xFFE4E4E4), Color(0xFF858585) /*...*/)
+val BlueGradientBrush = Brush.linearGradient(colors = blueGradientColors)
+val GrayScaleGradientBrush = Brush.linearGradient(colors = grayscaleGradientColors)
