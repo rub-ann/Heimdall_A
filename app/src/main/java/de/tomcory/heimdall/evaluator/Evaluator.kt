@@ -1,6 +1,7 @@
 package de.tomcory.heimdall.evaluator
 
 import android.content.Context
+import androidx.room.Room
 import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.evaluator.modules.ModuleFactory
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
@@ -8,9 +9,9 @@ import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
 import timber.log.Timber
 
-object Evaluator {
+class Evaluator {
     var modules: List<Module>
-    val moduleFactory: ModuleFactory = ModuleFactory
+    private val moduleFactory: ModuleFactory = ModuleFactory
 
     init {
         Timber.d("Evaluator init")
@@ -63,6 +64,21 @@ object Evaluator {
         HeimdallDatabase.instance?.reportDao?.insertReport(report)
         HeimdallDatabase.instance?.subReportDao?.insertSubReport(subReports)
         return Pair(report, subReports)
+    }
+
+    companion object{
+        var instance: Evaluator = Evaluator()
+            private set
+
+        @JvmStatic
+        fun init(): Boolean {
+            return if (instance == null) {
+                instance = Evaluator()
+                true
+            } else {
+                false
+            }
+        }
     }
 
 }

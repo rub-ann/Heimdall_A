@@ -158,7 +158,7 @@ class ScanManager private constructor(
                 libraryScanner = LibraryScanner.create(
                     context.preferencesStore.data.first().scanLibraryScannerPrepopulate
                 ),
-                evaluator = Evaluator
+                evaluator = Evaluator.instance
             )
         }
 

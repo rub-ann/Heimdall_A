@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import de.tomcory.heimdall.R
+import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,7 @@ class HeimdallApplication : Application() {
             if (HeimdallDatabase.init(this@HeimdallApplication)) {
                 Timber.d("Database instance created")
             }
+            Evaluator.init()
         }
     }
 

@@ -31,7 +31,7 @@ class AppDetailViewModel(appWithReports: AppWithReport) : ViewModel() {
     fun rescanApp(context: Context){
         CoroutineScope(Dispatchers.IO).launch {
             Timber.d("Rescanned ${uiState.value.packageName}")
-            val report = Evaluator.evaluateApp(uiState.value.packageName, context)?.first
+            val report = Evaluator.instance.evaluateApp(uiState.value.packageName, context)?.first
             if (report != null){
                 Timber.d("Updated UI with new report")
                 _uiState.value.report = report
