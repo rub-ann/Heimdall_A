@@ -35,8 +35,6 @@ fun AllAppsChart(
         arcRange * it.first / total
     }
 
-
-    Timber.d("Drawing Acrs - $appSets - total: $total, sweeps: $sweepAngles")
     Box(contentAlignment = Alignment.Center) {
         Canvas(
             modifier = Modifier
@@ -49,7 +47,6 @@ fun AllAppsChart(
 
                 var currentAngle = startAngle
                 for (setIndex in appSets.indices) {
-                    Timber.d("drawing arc from $startAngle for ${sweepAngles[setIndex]}")
                     // val brush = BlueGradientBrush
                     drawArc(
                         color = appSets[setIndex].second,
