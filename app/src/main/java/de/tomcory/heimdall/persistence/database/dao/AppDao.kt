@@ -34,6 +34,10 @@ interface AppDao {
     suspend fun getAllAppWithReports(): List<AppWithReport>
 
     @Transaction
+    @Query("SELECT * FROM App WHERE isInstalled AND NOT isSystem")
+    suspend fun getInstalledUserAppWithReports(): List<AppWithReport>
+
+    @Transaction
     @Query("SELECT * FROM App")
     fun getAllAppWithReportsObservable(): Flow<List<AppWithReport>>
 
