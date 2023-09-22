@@ -18,7 +18,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFrom
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -64,6 +68,9 @@ fun DeviceOverview(
     val uiState by viewModel.uiState.collectAsState()
     val animateFloat = remember { Animatable(0f) }
 
+    val title = "Device Privacy Overview"
+    val infoText = "This is an overview over the apps installed on your device. They are grouped into 'unacceptable', 'questionable' and 'acceptable' in regards to their privacy impact."
+
     LaunchedEffect(animateFloat) {
         animateFloat.animateTo(
             targetValue = 1f,
@@ -78,7 +85,7 @@ fun DeviceOverview(
             .fillMaxSize()
             .padding(10.dp, 0.dp)
     ) {
-        TopBar()
+        TopSegmentBar(title, infoText)
         Spacer(modifier = Modifier.height(10.dp))
         AnimatedVisibility(visible = uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {
                 CircularProgressIndicator()
@@ -86,31 +93,38 @@ fun DeviceOverview(
         }
 
         AnimatedVisibility(visible = !uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {
-            Column {
 
-                val appSets = uiState.getAppSetSizes(showNoReportApps)
-                val colors = uiState.colors.ifEmpty { getDefaultColorsFromTheme(showNoReportApps) }
-                val appSetsWithColors = appSets.zip(colors)
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_heimdall_round),
-                        contentDescription = "Heimdall App Icon",
+            val appSets = uiState.getAppSetSizes(showNoReportApps)
+            val colors = uiState.colors.ifEmpty { getDefaultColorsFromTheme(showNoReportApps) }
+            val appSetsWithColors = appSets.zip(colors)
+            LazyColumn {
+                item {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_heimdall_round),
+                            contentDescription = "Heimdall App Icon",
+                            modifier = Modifier
+                                .size(size = 150.dp)
+                                .clickable { /*userScanApps() */ })
+                        AllAppsChart(appSets = appSetsWithColors)
+                    }
+
+
+                    Spacer(modifier = Modifier.size(20.dp))
+                    Row(
                         modifier = Modifier
-                            .size(size = 150.dp)
-                            .clickable { /*userScanApps() */ })
-                    AllAppsChart(appSets = appSetsWithColors)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Tap to Scan!",
+                            style = MaterialTheme.typography.titleSmall.merge(TextStyle(fontStyle = FontStyle.Italic))
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.size(20.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Tap to Scan!",
-                        style = MaterialTheme.typography.titleSmall.merge(TextStyle(fontStyle = FontStyle.Italic))
-                    )
+                item { Spacer(modifier = Modifier.height(30.dp)) }
+                item {
+                    FlopApps(apps = viewModel.getFlopApps())
                 }
             }
         }
@@ -139,40 +153,6 @@ data class DeviceOverviewUIState(
         var sets = listOf(appsNoReport, appsUnacceptable, appsQuestionable, appsAcceptable).map { it.size }
         if (!showNoReport) {sets = sets.drop(1)}
         return sets
-    }
-
-
-}
-
-@Composable
-fun TopBar(){
-    var showInfoText: Boolean by remember { mutableStateOf(false) }
-
-    val infoText = "This is an overview over the apps installed on your device. They are grouped into 'unacceptable', 'questionable' and 'acceptable' in regards to their privacy impact."
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Device Overview",
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center
-        )
-        IconButton(
-            onClick = {showInfoText = !showInfoText},
-            enabled = true,
-            modifier = Modifier.padding(0.dp)
-        ) {
-            Icon(Icons.Outlined.Info, "infoTextButton")
-        }
-    }
-    AnimatedVisibility(visible = showInfoText) {
-        Text(text = infoText, style= MaterialTheme.typography.displaySmall.merge(
-            TextStyle(fontStyle = FontStyle.Italic)
-        ))
-        Spacer(modifier = Modifier.height(5.dp))
     }
 }
 

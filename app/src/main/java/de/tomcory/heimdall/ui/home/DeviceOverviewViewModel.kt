@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.ViewModelFactoryDsl
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
+import de.tomcory.heimdall.persistence.database.dao.AppWithReport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,7 @@ class DeviceOverviewViewModel() : ViewModel() {
     val uiState: StateFlow<DeviceOverviewUIState> = _uiState.asStateFlow()
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            val apps = HeimdallDatabase.instance?.appDao?.getAllAppWithReports() ?: listOf()
+            val apps = HeimdallDatabase.instance?.appDao?.getInstalledUserAppWithReports() ?: listOf()
             _uiState.update { DeviceOverviewUIState(apps, loadingApps = false) }
         }
     }
@@ -37,6 +38,10 @@ class DeviceOverviewViewModel() : ViewModel() {
             //ScanManager(context).scanAllApps()
 
         }
+    }
+
+    fun getFlopApps(n: Int = 5): List<AppWithReport> {
+        return uiState.value.apps.sortedByDescending { it.report?.mainScore}.subList(0, 5)
     }
 
 }

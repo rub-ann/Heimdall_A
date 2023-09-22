@@ -7,17 +7,23 @@ import android.content.Intent
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Face
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -38,6 +44,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.tomcory.heimdall.persistence.datastore.PreferencesSerializer
@@ -219,6 +228,40 @@ suspend fun stopProxyAndVpn(context: Context, proxyServer: HeimdallHttpProxyServ
     withContext(Dispatchers.IO) {
         Timber.d("Stopping proxy")
         proxyServer?.stop()
+    }
+}
+
+@Composable
+fun TopSegmentBar(title: String, infoText:String){
+    var showInfoText: Boolean by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Spacer(modifier = Modifier.width(40.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+        Box() {
+            IconButton(
+                onClick = { showInfoText = !showInfoText },
+                enabled = true,
+                modifier = Modifier.padding(0.dp)
+            ) {
+                Icon(Icons.Outlined.Info, "infoTextButton")
+            }
+        }
+    }
+    AnimatedVisibility(visible = showInfoText) {
+        Text(text = infoText, style= MaterialTheme.typography.bodySmall .merge(
+            TextStyle(fontStyle = FontStyle.Italic)
+        ))
+        Spacer(modifier = Modifier.height(5.dp))
     }
 }
 
