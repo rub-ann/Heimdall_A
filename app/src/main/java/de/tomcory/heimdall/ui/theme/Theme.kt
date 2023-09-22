@@ -92,6 +92,12 @@ fun HeimdallTheme(
 }
 
 val blueGradientColors = listOf(Color.Cyan, Color(0xFF0066FF), Color(0xFFdd21d1) /*...*/)
-val grayscaleGradientColors = listOf(Color.Cyan, Color(0xFFE4E4E4), Color(0xFF858585) /*...*/)
+val grayscaleGradientColors = listOf(Color(0xFFE4E4E4), Color(0xFF858585) /*...*/)
 val BlueGradientBrush = Brush.linearGradient(colors = blueGradientColors)
 val GrayScaleGradientBrush = Brush.linearGradient(colors = grayscaleGradientColors)
+
+// colors for app score classification
+val noReportScoreColor = Color.DarkGray
+val unacceptableScoreColor = md_theme_light_error
+val questionableScoreColor = md_theme_dark_warning
+val acceptableScoreColor = md_theme_light_primary
