@@ -1,10 +1,16 @@
 package de.tomcory.heimdall.ui.home
 
 import android.content.Context
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.ViewModelFactoryDsl
+import com.patrykandpatrick.vico.core.extension.sumByFloat
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.dao.AppWithReport
+import de.tomcory.heimdall.scanner.code.ScanManager
+import de.tomcory.heimdall.ui.chart.ChartData
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,24 +18,67 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 
 @ViewModelFactoryDsl
 class DeviceOverviewViewModel() : ViewModel() {
 
-    private val _uiState : MutableStateFlow<DeviceOverviewUIState> = MutableStateFlow(DeviceOverviewUIState())
+    private val _uiState: MutableStateFlow<DeviceOverviewUIState> =
+        MutableStateFlow(DeviceOverviewUIState())
     val uiState: StateFlow<DeviceOverviewUIState> = _uiState.asStateFlow()
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
     init {
-        CoroutineScope(Dispatchers.IO).launch {
-            val apps = HeimdallDatabase.instance?.appDao?.getInstalledUserAppWithReports() ?: listOf()
-            _uiState.update { DeviceOverviewUIState(apps, loadingApps = false) }
+        updateApps()
+    }
+
+    fun updateApps() {
+        viewModelScope.launch { fetchApps() }
+    }
+
+    private suspend fun fetchApps() = withContext(ioDispatcher) {
+        Timber.d("loading apps for home screen from DB")
+        var apps =
+            HeimdallDatabase.instance?.appDao?.getInstalledUserAppWithReports() ?: listOf()
+        _uiState.update { DeviceOverviewUIState(apps, loadingApps = false) }
+        Timber.d("finished loading ${apps.size} apps for home screen from DB")
+    }
+
+    fun getTotalScore(): Float {
+        val apps = listOf(
+            uiState.value.appsUnacceptable,
+            _uiState.value.appsQuestionable,
+            _uiState.value.appsAcceptable
+        ).flatten()
+        if (apps.isEmpty()) return -1f
+        val n = apps.size
+        val totalScore = apps.sumByFloat { it.report?.mainScore?.toFloat() ?: 0f }
+
+        return totalScore / n * 100
+    }
+
+    fun getAppSetSizes(showNoReport: Boolean = false): List<ChartData> {
+        val label = listOf("no evaluation found", "unacceptable", "questionable", "acceptable")
+        var sets = listOf(
+            uiState.value.appsNoReport,
+            uiState.value.appsUnacceptable,
+            uiState.value.appsQuestionable,
+            uiState.value.appsAcceptable
+        ).mapIndexedNotNull { index, item ->
+            ChartData(
+                label[index],
+                color = uiState.value.colors.getOrElse(index) { Color.Unspecified },
+                size = item.size
+            )
         }
+        if (!showNoReport) {
+            sets = sets.drop(1)
+        }
+        return sets
     }
 
-    fun loadPreferences(){
-
-    }
 
     fun scanApps(context: Context) {
         TODO("Not yet implemented")
@@ -40,8 +89,20 @@ class DeviceOverviewViewModel() : ViewModel() {
         }
     }
 
-    fun getFlopApps(n: Int = 5): List<AppWithReport> {
-        return uiState.value.apps.sortedByDescending { it.report?.mainScore}.subList(0, 5)
-    }
+    fun getFlopApps(context: Context, nFlopApps: Int = 5): List<AppWithReport> {
+        var n = nFlopApps
+        if (uiState.value.apps.size < n) {
+            n = uiState.value.apps.size
+        }
+        var apps = uiState.value.apps.sortedBy { it.report?.mainScore }.subList(0, n)
+        apps = apps.map {
+            if (it.app.icon == null && it.app.isInstalled) {
+                it.app.icon = ScanManager.getAppIcon(context, it.app.packageName)
+            }
+            it
+        }
+        Timber.d("loaded $n flop apps: $apps")
+        return apps
 
+    }
 }
