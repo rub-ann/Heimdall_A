@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import de.tomcory.heimdall.evaluator.ModuleResult
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
+import de.tomcory.heimdall.persistence.database.entity.SubReport
 
 abstract class Module {
 
@@ -41,7 +42,6 @@ abstract class Module {
 
     abstract suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate:Boolean = false): Result<ModuleResult>
 
-    // TODO work with SubReports
     @Composable
     abstract fun BuildUICard(report: Report?)
 
@@ -92,13 +92,11 @@ abstract class Module {
         }
     }
 
-    abstract fun exportJSON() : String
-
-
     override fun toString(): String {
         return this.name
     }
 
+    abstract fun exportJSON(subReport: SubReport): String
 }
 
 

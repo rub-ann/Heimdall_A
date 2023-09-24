@@ -28,9 +28,11 @@ import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
+import de.tomcory.heimdall.persistence.database.entity.SubReportBase
 import de.tomcory.heimdall.persistence.database.entity.Tracker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -55,9 +57,26 @@ class TrackerScore: Module() {
         super.UICard(
             title = this.label,
             infoText = "This modules scans for Libraries in the apps code that are know to relate to tracking and lists them."
-        ){
+        ) {
             val context = LocalContext.current
             LibraryUICardContent(report = report, context)
+        }
+    }
+
+    private fun loadSubReportFromDB(report: Report): SubReport? {
+        return HeimdallDatabase.instance?.subReportDao?.getSubReportsByPackageNameAndModule(
+            report.appPackageName,
+            name
+        )
+    }
+
+    private fun decode(info: String): List<Tracker> {
+        Timber.d("trying to decode: $info")
+        return try {
+            Json.decodeFromString(info)
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to decode in module: ${this.name}")
+            listOf<Tracker>()
         }
     }
 
@@ -65,18 +84,11 @@ class TrackerScore: Module() {
         var trackers = listOf<Tracker>()
         var subReport: SubReport? = null
         report?.let {
-            subReport = HeimdallDatabase.instance?.subReportDao
-                ?.getSubReportsByPackageNameAndModule(report.appPackageName, name)
+            subReport = loadSubReportFromDB(report = report)
         }
 
         subReport?.let {
-            try {
-                trackers =
-                    Json.decodeFromString(it.additionalDetails)
-            } catch (e: Exception) {
-                Timber.w(e, "Failed to decode in module: ${it.additionalDetails}")
-            }
-            Timber.d("loaded and decoded from DB: $trackers")
+            trackers = decode(it.additionalDetails)
         }
         return trackers
     }
@@ -118,7 +130,30 @@ class TrackerScore: Module() {
         }
     }
 
-    override fun exportJSON(): String {
-        TODO("Not yet implemented")
+    override fun exportJSON(subReport: SubReport): String {
+        val info = decode(subReport.additionalDetails)
+        val customSubReport = SubReportWithTrackerInfo(subReport = subReport, trackers = info)
+        return Json.encodeToString(customSubReport)
     }
+}
+
+
+@Serializable
+private data class SubReportWithTrackerInfo constructor(
+    override val reportId: Long,
+    override val packageName: String,
+    override val module: String,
+    override val score: Float,
+    override val weight: Double,
+    override val timestamp: Long,
+    val trackers: List<Tracker>
+) : SubReportBase() {
+    constructor(subReport: SubReport, trackers: List<Tracker>) : this(
+        subReport.reportId,
+        subReport.packageName,
+        subReport.module, subReport.score,
+        subReport.weight,
+        subReport.timestamp,
+        trackers
+    )
 }

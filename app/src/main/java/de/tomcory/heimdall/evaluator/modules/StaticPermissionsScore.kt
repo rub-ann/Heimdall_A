@@ -30,6 +30,7 @@ import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
+import de.tomcory.heimdall.persistence.database.entity.SubReportBase
 import de.tomcory.heimdall.ui.apps.DonutChart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -93,24 +94,33 @@ class StaticPermissionsScore : Module() {
         }
     }
 
+    private fun loadSubReportFromDB(report: Report): SubReport? {
+        return HeimdallDatabase.instance?.subReportDao?.getSubReportsByPackageNameAndModule(
+            report.appPackageName,
+            name
+        )
+    }
+
+    private fun decode(info: String): PermissionCountInfo? {
+        Timber.d("trying to decode: $info")
+
+        return try {
+            Json.decodeFromString(info)
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to decode in module: ${this.name}")
+            null
+        }
+    }
+
     private fun loadAndDecode(report: Report?): PermissionCountInfo? {
         var permissionCountInfo: PermissionCountInfo? = null
         var subReport: SubReport? = null
         report?.let {
-            subReport =
-                HeimdallDatabase.instance?.subReportDao?.getSubReportsByPackageNameAndModule(
-                    report.appPackageName,
-                    name
-                )
+            subReport = loadSubReportFromDB(it)
         }
         subReport?.let {
-            Timber.d("trying to decode: ${it.additionalDetails}")
-            try {
-                permissionCountInfo =
-                    Json.decodeFromString(it.additionalDetails)
-            } catch (e: Exception) {
-                Timber.w(e, "Failed to decode in module: ${it.additionalDetails}")
-            }
+            permissionCountInfo = decode(it.additionalDetails)
+
         }
         Timber.d("loaded and decoded from DB: $permissionCountInfo")
         return permissionCountInfo
@@ -118,10 +128,10 @@ class StaticPermissionsScore : Module() {
 
     @Composable
     fun UICardContent(report: Report?) {
-        var permissionCountInfo: PermissionCountInfo? by remember { mutableStateOf(null)}
+        var permissionCountInfo: PermissionCountInfo? by remember { mutableStateOf(null) }
         var loadingPermissions by remember { mutableStateOf(true) }
 
-        LaunchedEffect(key1 = 1){
+        LaunchedEffect(key1 = 1) {
             this.launch(Dispatchers.IO) {
                 permissionCountInfo = loadAndDecode(report)
                 loadingPermissions = false
@@ -165,8 +175,11 @@ class StaticPermissionsScore : Module() {
             }
         }
     }
-    override fun exportJSON(): String {
-        TODO("Not yet implemented")
+
+    override fun exportJSON(subReport: SubReport): String {
+        val decodedInfo = decode(subReport.additionalDetails)
+        return Json.encodeToString(SubReportWithPermissionInfo(subReport, decodedInfo))
+
     }
 }
 
@@ -176,5 +189,33 @@ data class PermissionCountInfo(
     val dangerousPermissionCount: Int,
     val signaturePermissionCount: Int,
     val normalPermissionCount: Int
-)
+) {
+    override fun toString(): String {
+        return """
+            found $dangerousPermissionCount 'dangerous' permissions
+            found $signaturePermissionCount 'signature' permissions
+            found $normalPermissionCount 'normal' permissions
+        """.trimIndent()
+    }
+}
+
+@Serializable
+private data class SubReportWithPermissionInfo constructor(
+    override val reportId: Long,
+    override val packageName: String,
+    override val module: String,
+    override val score: Float,
+    override val weight: Double,
+    override val timestamp: Long,
+    val permissionCountInfo: PermissionCountInfo?
+) : SubReportBase() {
+    constructor(subReport: SubReport, permissionCountInfo: PermissionCountInfo?) : this(
+        subReport.reportId,
+        subReport.packageName,
+        subReport.module, subReport.score,
+        subReport.weight,
+        subReport.timestamp,
+        permissionCountInfo
+    )
+}
 
