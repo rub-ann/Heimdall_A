@@ -7,8 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
-import de.tomcory.heimdall.persistence.database.entity.SubReport
 import de.tomcory.heimdall.persistence.database.entity.Report
+import de.tomcory.heimdall.persistence.database.entity.SubReport
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,7 +20,7 @@ interface ReportDao {
     fun getAll(): List<Report>
 
     @Transaction
-    @Query("SELECT * FROM Report WHERE packageName = :reportId ORDER BY timestamp DESC")
+    @Query("SELECT * FROM Report WHERE appPackageName = :reportId ORDER BY timestamp DESC")
     fun getReportWithSubReports(reportId: Int): ReportWithSubReport
 
     @Query("Select * FROM Report")
@@ -31,8 +31,8 @@ data class ReportWithSubReport(
     @Embedded
     val report: Report,
     @Relation(
-        parentColumn = "packageName",
-        entityColumn = "packageName"
+        parentColumn = "reportId",
+        entityColumn = "reportId"
     )
     val subReports: List<SubReport>
 )

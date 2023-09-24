@@ -52,10 +52,11 @@ fun ScoreCard(report: Report?) {
 @Composable
 fun ScoreCardPreview(){
     Column {
-        val report_sample = Report("test.android.com", timestamp = 3000, mainScore = .8)
-        ScoreCard(report =  report_sample)
+        val reportSample =
+            Report(appPackageName = "test.android.com", timestamp = 3000, mainScore = .8)
+        ScoreCard(report = reportSample)
         Spacer(modifier = Modifier.height(10.dp))
-        ScoreCard(report =  null)
+        ScoreCard(report = null)
     }
 
 }

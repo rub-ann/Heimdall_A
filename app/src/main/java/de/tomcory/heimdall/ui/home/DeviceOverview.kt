@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import de.tomcory.heimdall.persistence.database.dao.AppWithReport
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.ui.chart.AllAppsChart
@@ -110,16 +110,26 @@ fun DeviceOverview(
 
 // TODO load thresholds from preferenceStore somehow
 data class DeviceOverviewUIState(
-    val apps:List<AppWithReport> = listOf(AppWithReport(App("com.test.package", "TestPackage", "0.0.1", 1), Report("com.test.package", 1234, 0.76))),
-    val appsNoReport: List<AppWithReport> = apps.filter { it.report != null },
-    val appsUnacceptable: List<AppWithReport> = apps.filter {
-        (it.report?.mainScore ?: -1.0) in 0.0..0.49
+    val apps: List<AppWithReports> = listOf(
+        AppWithReports(
+            App(
+                "com.test.package",
+                "TestPackage",
+                "0.0.1",
+                1
+            ),
+            listOf(Report(appPackageName = "com.test.package", timestamp = 1234, mainScore = 0.76))
+        )
+    ),
+    val appsNoReport: List<AppWithReports> = apps.filter { it.getLatestReport() != null },
+    val appsUnacceptable: List<AppWithReports> = apps.filter {
+        (it.getLatestReport()?.mainScore ?: -1.0) in 0.0..0.49
     },
-    val appsQuestionable: List<AppWithReport> = apps.filter {
-        (it.report?.mainScore ?: -1.0) in 0.5..0.74
+    val appsQuestionable: List<AppWithReports> = apps.filter {
+        (it.getLatestReport()?.mainScore ?: -1.0) in 0.5..0.74
     },
-    val appsAcceptable: List<AppWithReport> = apps.filter {
-        (it.report?.mainScore ?: -1.0) >= 0.75
+    val appsAcceptable: List<AppWithReports> = apps.filter {
+        (it.getLatestReport()?.mainScore ?: -1.0) >= 0.75
     },
 
     val colors: List<Color> = listOf(),

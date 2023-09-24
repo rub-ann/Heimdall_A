@@ -27,35 +27,44 @@ interface AppDao {
 
     @Transaction
     @Query("SELECT * FROM App WHERE packageName = :packageName")
-    suspend fun getAppWithReport(packageName: String): AppWithReport
+    suspend fun getAppWithReport(packageName: String): AppWithReports
 
     @Transaction
     @Query("SELECT * FROM App")
-    suspend fun getAllAppWithReports(): List<AppWithReport>
+    suspend fun getAllAppWithReports(): List<AppWithReports>
 
     @Transaction
     @Query("SELECT * FROM App WHERE isInstalled AND NOT isSystem")
-    suspend fun getInstalledUserAppWithReports(): List<AppWithReport>
+    suspend fun getInstalledUserAppWithReports(): List<AppWithReports>
 
     @Transaction
     @Query("SELECT * FROM App")
-    fun getAllAppWithReportsObservable(): Flow<List<AppWithReport>>
+    fun getAllAppWithReportsObservable(): Flow<List<AppWithReports>>
 
 }
 
-data class AppWithReport(
+data class AppWithReports(
     @Embedded val app: App,
     @Relation(
         parentColumn = "packageName",
-        entityColumn = "packageName"
+        entityColumn = "appPackageName"
     )
-    val report: Report?
-): Comparable<AppWithReport> {
-    override operator fun compareTo(other: AppWithReport): Int {
+    val reports: List<Report>,
+) : Comparable<AppWithReports> {
+    fun getLatestReport(): Report? {
+        return reports.maxByOrNull { it.timestamp }
+    }
+
+    override operator fun compareTo(other: AppWithReports): Int {
         if (this.app.packageName > other.app.packageName) return 1
         if (this.app.packageName < other.app.packageName) return -1
-        if ((this.report?.mainScore ?: 0.0) > (other.report?.mainScore ?: 0.0)) return 1
-        if ((this.report?.mainScore ?: 0.0) < (other.report?.mainScore ?: 0.0)) return -1
+        if ((this.getLatestReport()?.mainScore ?: 0.0) > (other.getLatestReport()?.mainScore
+                ?: 0.0)
+        ) return 1
+        if ((this.getLatestReport()?.mainScore ?: 0.0) < (other.getLatestReport()?.mainScore
+                ?: 0.0)
+        ) return -1
         return 0
     }
 }
+

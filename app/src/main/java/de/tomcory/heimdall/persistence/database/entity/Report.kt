@@ -5,10 +5,11 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-data class Report constructor(
-        @PrimaryKey
+data class Report(
+        @PrimaryKey(autoGenerate = true)
         @ColumnInfo(index = true)
-        val packageName:String,
+        val reportId: Long = 0,
+        val appPackageName: String,
 
         @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP")
         val timestamp: Long,
@@ -16,7 +17,8 @@ data class Report constructor(
 ) {
         override fun toString(): String {
                 return """
-                        Score Evaluation Report of $packageName:
+                        Score Evaluation Report of $reportId:
+                                package: $appPackageName
                                 timestamp: $timestamp
                                 Score: $mainScore
                 """.trimIndent()

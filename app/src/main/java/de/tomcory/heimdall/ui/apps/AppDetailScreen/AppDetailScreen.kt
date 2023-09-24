@@ -26,7 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.evaluator.modules.Module
-import de.tomcory.heimdall.persistence.database.dao.AppWithReport
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import timber.log.Timber
@@ -34,21 +34,21 @@ import timber.log.Timber
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewAppDetailScreen(
-    appWithReport: AppWithReport,
+    appWithReports: AppWithReports,
     onDismissRequest: () -> Unit,
-    factory: AppDetailViewModelFactory = AppDetailViewModelFactory(appWithReport),
+    factory: AppDetailViewModelFactory = AppDetailViewModelFactory(appWithReports),
     appDetailViewModel: AppDetailViewModel = viewModel(factory = factory),
     context: Context = LocalContext.current,
-    userRescanApp: () -> Unit = {appDetailViewModel.rescanApp(context)},
-    userUninstallApp : ()-> Unit = {appDetailViewModel.uninstallApp(context)}
+    userRescanApp: () -> Unit = { appDetailViewModel.rescanApp(context) },
+    userUninstallApp: () -> Unit = { appDetailViewModel.uninstallApp(context) }
 ) {
 
     val appDetailUiState by appDetailViewModel.uiState.collectAsState()
-    appDetailViewModel.updateApp(appWithReport)
+    appDetailViewModel.updateApp(appWithReports)
 
     var dropdownExpanded by remember { mutableStateOf(false) }
 
-    Timber.d("Showing Details of $appWithReport")
+    Timber.d("Showing Details of $appWithReports")
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -132,7 +132,7 @@ fun NewAppDetailScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
             items(appDetailUiState.modules){module ->
-                module.BuildUICard(report = appWithReport.report)
+                module.BuildUICard(report = appWithReports.getLatestReport())
                 Spacer(modifier = Modifier.height(9.dp))
             }
         }
@@ -142,13 +142,28 @@ fun NewAppDetailScreen(
 
 
 data class AppDetailScreeUIState(
-    var appWithReport:AppWithReport = AppWithReport(App("com.test.package", "TestPackage", "0.0.1", 1), Report("com.test.package", 1234, 0.76)),
-    val app:App = appWithReport.app,
+    var appWithReports: AppWithReports = AppWithReports(
+        App(
+            "com.test.package",
+            "TestPackage",
+            "0.0.1",
+            1
+        ),
+        listOf(
+            Report(
+                reportId = 1,
+                appPackageName = "com.test.package",
+                timestamp = 1234,
+                mainScore = 0.76
+            )
+        )
+    ),
+    val app: App = appWithReports.app,
 
-    var report: Report? = appWithReport.report,
+    var report: Report? = appWithReports.getLatestReport(),
 
-    val packageLabel:String = app.label,
-    val packageName:String = app.packageName,
+    val packageLabel: String = app.label,
+    val packageName: String = app.packageName,
     val packageIcon: Drawable? = app.icon,
 
     val modules: List<Module> = Evaluator.instance.modules,
@@ -165,7 +180,8 @@ fun NewAppDetailScreenPreview() {
         versionName = "v0.1",
         versionCode = 0
     )
-    val report = Report(mainScore = 0.76, timestamp = 1234, packageName = "com.test.package")
-    NewAppDetailScreen(appWithReport = AppWithReport(app, report), onDismissRequest = { })
+    val reports =
+        listOf(Report(mainScore = 0.76, timestamp = 1234, appPackageName = "com.test.package"))
+    NewAppDetailScreen(appWithReports = AppWithReports(app, reports), onDismissRequest = { })
 }
 

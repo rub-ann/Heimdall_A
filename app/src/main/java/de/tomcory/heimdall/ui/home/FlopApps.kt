@@ -2,8 +2,6 @@ package de.tomcory.heimdall.ui.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,19 +10,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import de.tomcory.heimdall.persistence.database.dao.AppWithReport
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.ui.apps.AppDetailScreen.NewAppDetailScreen
 import de.tomcory.heimdall.ui.apps.AppListItem
 
 @Composable
-fun FlopApps(apps: List<AppWithReport>){
+fun FlopApps(apps: List<AppWithReports>) {
 
     val title = "Flop Apps"
-    val infoText = "These are the worst and most privacy intrusive apps on your device. Maybe you want to reconsider using them."
+    val infoText =
+        "These are the worst and most privacy intrusive apps on your device. Maybe you want to reconsider using them."
     TopSegmentBar(title, infoText)
 
     Column() {
-        for(app in apps){
+        for (app in apps) {
             var showAppDetailDialog by remember { mutableStateOf(false) }
             AppListItem(
                 appWithReports = app,
@@ -38,7 +37,7 @@ fun FlopApps(apps: List<AppWithReport>){
                     properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {
                     NewAppDetailScreen(
-                        appWithReport = app,
+                        appWithReports = app,
                         onDismissRequest = { showAppDetailDialog = false })
                 }
             }

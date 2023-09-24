@@ -2,7 +2,6 @@ package de.tomcory.heimdall.ui.chart
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -53,7 +52,6 @@ import de.tomcory.heimdall.ui.theme.questionableScoreColor
 import de.tomcory.heimdall.ui.theme.unacceptableScoreColor
 import timber.log.Timber
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AllAppsChart(
     thickness: Dp = 12.dp,
@@ -140,7 +138,7 @@ fun AllAppsChart(
                     drawArc(
                         brush = brush,
                         startAngle = 90f + bottomGap / 2,
-                        sweepAngle = (360f - bottomGap / 2), // * animateFloat.value,
+                        sweepAngle = (360f - bottomGap), // * animateFloat.value,
                         useCenter = false,
                         style = Stroke(width = thickness.toPx(), cap = StrokeCap.Round),
                         size = Size(arcRadius, arcRadius),

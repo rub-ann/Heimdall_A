@@ -1,7 +1,6 @@
 package de.tomcory.heimdall.evaluator
 
 import android.content.Context
-import androidx.room.Room
 import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.evaluator.modules.ModuleFactory
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
@@ -49,21 +48,33 @@ class Evaluator {
 
         }
         // TODO implement weights
-        val totalScore = results.fold(0.0){sum, s -> sum + s.score} / n
+        val totalScore = results.fold(0.0) { sum, s -> sum + s.score } / n
         Timber.d("evaluation complete for ${app.packageName}: $totalScore}")
         return createReport(app.packageName, totalScore, results)
     }
 
 
-    private suspend fun createReport(packageName:String, totalScore: Double, moduleResults: MutableList<ModuleResult>): Pair<Report, List<SubReport>> {
-        val report = Report(packageName = packageName, timestamp = System.currentTimeMillis(), mainScore = totalScore)
-        val subReports = moduleResults.map(){result ->
-            SubReport(result, packageName)
-        }
+    private suspend fun createReport(
+        packageName: String,
+        totalScore: Double,
+        moduleResults: MutableList<ModuleResult>
+    ): Pair<Report, List<SubReport>>? {
         Timber.d("writing Report and SubReports to Database")
-        HeimdallDatabase.instance?.reportDao?.insertReport(report)
-        HeimdallDatabase.instance?.subReportDao?.insertSubReport(subReports)
-        return Pair(report, subReports)
+        val report = Report(
+            appPackageName = packageName,
+            timestamp = System.currentTimeMillis(),
+            mainScore = totalScore
+        )
+
+        HeimdallDatabase.instance?.reportDao?.insertReport(report)?.let { reportId ->
+            val subReports = moduleResults.map() { result ->
+                SubReport(result, reportId, packageName)
+            }
+            HeimdallDatabase.instance?.subReportDao?.insertSubReport(subReports)
+            return Pair(report, subReports)
+        }
+        Timber.d("failed to write report for $packageName to database")
+        return null
     }
 
     companion object{
@@ -72,12 +83,8 @@ class Evaluator {
 
         @JvmStatic
         fun init(): Boolean {
-            return if (instance == null) {
-                instance = Evaluator()
-                true
-            } else {
-                false
-            }
+            instance = Evaluator()
+            return true
         }
     }
 

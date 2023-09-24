@@ -93,13 +93,13 @@ class StaticPermissionsScore : Module() {
         }
     }
 
-    private suspend fun loadAndDecode(report: Report?): PermissionCountInfo? {
+    private fun loadAndDecode(report: Report?): PermissionCountInfo? {
         var permissionCountInfo: PermissionCountInfo? = null
         var subReport: SubReport? = null
         report?.let {
             subReport =
                 HeimdallDatabase.instance?.subReportDao?.getSubReportsByPackageNameAndModule(
-                    report.packageName,
+                    report.appPackageName,
                     name
                 )
         }

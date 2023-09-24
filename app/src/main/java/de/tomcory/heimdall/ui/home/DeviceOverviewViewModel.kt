@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.ViewModelFactoryDsl
 import com.patrykandpatrick.vico.core.extension.sumByFloat
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
-import de.tomcory.heimdall.persistence.database.dao.AppWithReport
+import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.scanner.code.ScanManager
 import de.tomcory.heimdall.ui.chart.ChartData
 import kotlinx.coroutines.CoroutineDispatcher
@@ -40,7 +40,7 @@ class DeviceOverviewViewModel() : ViewModel() {
 
     private suspend fun fetchApps() = withContext(ioDispatcher) {
         Timber.d("loading apps for home screen from DB")
-        var apps =
+        val apps =
             HeimdallDatabase.instance?.appDao?.getInstalledUserAppWithReports() ?: listOf()
         _uiState.update { DeviceOverviewUIState(apps, loadingApps = false) }
         Timber.d("finished loading ${apps.size} apps for home screen from DB")
@@ -54,7 +54,7 @@ class DeviceOverviewViewModel() : ViewModel() {
         ).flatten()
         if (apps.isEmpty()) return -1f
         val n = apps.size
-        val totalScore = apps.sumByFloat { it.report?.mainScore?.toFloat() ?: 0f }
+        val totalScore = apps.sumByFloat { it.getLatestReport()?.mainScore?.toFloat() ?: 0f }
 
         return totalScore / n * 100
     }
@@ -66,7 +66,7 @@ class DeviceOverviewViewModel() : ViewModel() {
             uiState.value.appsUnacceptable,
             uiState.value.appsQuestionable,
             uiState.value.appsAcceptable
-        ).mapIndexedNotNull { index, item ->
+        ).mapIndexed { index, item ->
             ChartData(
                 label[index],
                 color = uiState.value.colors.getOrElse(index) { Color.Unspecified },
@@ -89,12 +89,12 @@ class DeviceOverviewViewModel() : ViewModel() {
         }
     }
 
-    fun getFlopApps(context: Context, nFlopApps: Int = 5): List<AppWithReport> {
+    fun getFlopApps(context: Context, nFlopApps: Int = 5): List<AppWithReports> {
         var n = nFlopApps
         if (uiState.value.apps.size < n) {
             n = uiState.value.apps.size
         }
-        var apps = uiState.value.apps.sortedBy { it.report?.mainScore }.subList(0, n)
+        var apps = uiState.value.apps.sortedBy { it.getLatestReport()?.mainScore }.subList(0, n)
         apps = apps.map {
             if (it.app.icon == null && it.app.isInstalled) {
                 it.app.icon = ScanManager.getAppIcon(context, it.app.packageName)

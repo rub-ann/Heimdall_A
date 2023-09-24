@@ -31,7 +31,6 @@ import de.tomcory.heimdall.persistence.database.entity.SubReport
 import de.tomcory.heimdall.persistence.database.entity.Tracker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -62,12 +61,12 @@ class TrackerScore: Module() {
         }
     }
 
-    private suspend fun loadAndDecode(report: Report?): List<Tracker> {
+    private fun loadAndDecode(report: Report?): List<Tracker> {
         var trackers = listOf<Tracker>()
         var subReport: SubReport? = null
         report?.let {
             subReport = HeimdallDatabase.instance?.subReportDao
-                ?.getSubReportsByPackageNameAndModule(report.packageName, name)
+                ?.getSubReportsByPackageNameAndModule(report.appPackageName, name)
         }
 
         subReport?.let {
@@ -123,7 +122,3 @@ class TrackerScore: Module() {
         TODO("Not yet implemented")
     }
 }
-
-
-@Serializable
-data class TrackerList(val trackerList: List<Tracker> = listOf())
