@@ -68,7 +68,12 @@ class Evaluator {
 
         HeimdallDatabase.instance?.reportDao?.insertReport(report)?.let { reportId ->
             val subReports = moduleResults.map() { result ->
-                SubReport(result, reportId, packageName)
+                SubReport(
+                    moduleResult = result,
+                    reportId = reportId,
+                    packageName = packageName,
+                    timestamp = System.currentTimeMillis()
+                )
             }
             HeimdallDatabase.instance?.subReportDao?.insertSubReport(subReports)
             return Pair(report, subReports)

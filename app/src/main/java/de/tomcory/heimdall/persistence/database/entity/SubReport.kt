@@ -14,19 +14,23 @@ data class SubReport(
     val module: String,
     val score: Float,
     val weight: Double = 1.0,
+    @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP")
+    val timestamp: Long,
     val additionalDetails: String = "",
 ) {
     constructor(
         moduleResult: ModuleResult,
         reportId: Long,
         packageName: String,
-        weight: Double = moduleResult.weight
+        weight: Double = moduleResult.weight,
+        timestamp: Long
     ) : this(
         reportId = reportId,
         packageName = packageName,
         module = moduleResult.module,
         score = moduleResult.score,
         weight = weight,
+        timestamp = timestamp,
         additionalDetails = moduleResult.additionalDetails
     ) {
     }
