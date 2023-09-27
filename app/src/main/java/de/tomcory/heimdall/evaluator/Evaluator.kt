@@ -6,6 +6,15 @@ import de.tomcory.heimdall.evaluator.modules.ModuleFactory
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import org.json.JSONObject
 import timber.log.Timber
 
 class Evaluator {
@@ -20,7 +29,7 @@ class Evaluator {
     suspend fun evaluateApp(packageName: String, context: Context): Pair<Report, List<SubReport>>? {
 
         val app = HeimdallDatabase.instance?.appDao?.getAppByName(packageName)
-        if (app == null){
+        if (app == null) {
             Timber.d("Evaluation of $packageName failed, because Database Entry not found")
             return null
         }
@@ -53,7 +62,6 @@ class Evaluator {
         return createReport(app.packageName, totalScore, results)
     }
 
-
     private suspend fun createReport(
         packageName: String,
         totalScore: Double,
@@ -82,7 +90,27 @@ class Evaluator {
         return null
     }
 
-    companion object{
+    suspend fun exportReportToJson(report: Report?): String {
+        if (report == null) return JSONObject.NULL.toString()
+        CoroutineScope(Dispatchers.IO).launch {
+
+        }
+        val subReports: List<JsonElement> = modules.map {
+            val subReport =
+                HeimdallDatabase.instance?.subReportDao?.getSubReportsByPackageNameAndModule(
+                    report.appPackageName,
+                    it.name
+                )
+            it.exportToJsonObject(subReport)
+        }
+        val subReportList = JsonArray(subReports)
+        var serializedReport: JsonObject = Json.encodeToJsonElement(report) as JsonObject
+        serializedReport = JsonObject(serializedReport.plus(Pair("subReports", subReportList)))
+        Timber.d("exported report $report\nto JSON:\n$serializedReport")
+        return serializedReport.toString()
+    }
+
+    companion object {
         var instance: Evaluator = Evaluator()
             private set
 

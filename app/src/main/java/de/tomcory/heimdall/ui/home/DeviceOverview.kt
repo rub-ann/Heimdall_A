@@ -99,10 +99,16 @@ fun DeviceOverview(
                     }
                 }
                 item { Spacer(modifier = Modifier.height(50.dp)) }
-                item {
-                    FlopApps(apps = viewModel.getFlopApps(context))
+                if (appSets.sumOf { it.size } > 0) {
+                    item {
+                        FlopApps(apps = viewModel.getFlopApps(context))
+                    }
+                } else {
+                    item {
+                        Text(text = "No App Info found. Consider scanning")
+                    }
                 }
-                item { Spacer(modifier = Modifier.height(50.dp)) }
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }

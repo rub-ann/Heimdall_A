@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +30,7 @@ import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,8 +42,11 @@ fun NewAppDetailScreen(
     appDetailViewModel: AppDetailViewModel = viewModel(factory = factory),
     context: Context = LocalContext.current,
     userRescanApp: () -> Unit = { appDetailViewModel.rescanApp(context) },
-    userUninstallApp: () -> Unit = { appDetailViewModel.uninstallApp(context) }
+    userUninstallApp: () -> Unit = { appDetailViewModel.uninstallApp(context) },
+    userExportData: () -> Unit = { appDetailViewModel.exportToJson() }
 ) {
+
+    val scope = rememberCoroutineScope()
 
     val appDetailUiState by appDetailViewModel.uiState.collectAsState()
     appDetailViewModel.updateApp(appWithReports)
@@ -93,13 +98,27 @@ fun NewAppDetailScreen(
                         onDismissRequest = { dropdownExpanded = false }
                     ) {
                         DropdownMenuItem(
-                            text = {  Text("Rescan") },
-                            onClick = { userRescanApp() }
+                            text = { Text("Rescan") },
+                            onClick = {
+                                userRescanApp()
+                                scope.launch {
+                                    appDetailUiState.snackbarHostState.showSnackbar("App re.scanned")
+                                }
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text("Uninstall") },
                             onClick = {
                                 userUninstallApp()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Export") },
+                            onClick = {
+                                userExportData()
+                                scope.launch {
+                                    appDetailUiState.snackbarHostState.showSnackbar("Export printed to debugging log")
+                                }
                             }
                         )
                         Divider()
@@ -111,9 +130,12 @@ fun NewAppDetailScreen(
                 }
             )
         },
+        snackbarHost = {
+            SnackbarHost(hostState = appDetailUiState.snackbarHostState)
+        },
         floatingActionButton = { RescanFloatingActionButton(userRescanApp) },
 
-    ) { padding ->
+        ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -167,7 +189,8 @@ data class AppDetailScreeUIState(
     val packageIcon: Drawable? = app.icon,
 
     val modules: List<Module> = Evaluator.instance.modules,
-    var dropdownExpanded: MutableState<Boolean> = mutableStateOf(false)
+    var dropdownExpanded: MutableState<Boolean> = mutableStateOf(false),
+    val snackbarHostState: SnackbarHostState = SnackbarHostState()
 )
 
 

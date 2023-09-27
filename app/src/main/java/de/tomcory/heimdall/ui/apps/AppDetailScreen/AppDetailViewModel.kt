@@ -50,4 +50,11 @@ class AppDetailViewModel(appWithReports: AppWithReports) : ViewModel() {
         _uiState.value = AppDetailScreeUIState(app)
     }
 
+    fun exportToJson() {
+        CoroutineScope(Dispatchers.IO).launch {
+            Evaluator.instance.exportReportToJson(uiState.value.report)
+            // TODO write to local file
+        }
+    }
+
 }
