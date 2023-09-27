@@ -17,64 +17,129 @@ import kotlinx.serialization.json.encodeToJsonElement
 import org.json.JSONObject
 import timber.log.Timber
 
+/**
+ * Evaluator TODO
+ *
+ * @constructor Create empty Evaluator
+ */
 class Evaluator {
-    var modules: List<Module>
+    /**
+     * List of Modules known to the evaluator. Only modules included here are considered in evaluation.
+     * Should not be set manually ore altered, only set trough [ModuleFactory.registeredModules].
+     */
+    private var modules: List<Module>
     private val moduleFactory: ModuleFactory = ModuleFactory
 
+    /**
+     * instantiates an [ModuleFactory] Object and sets [modules] registered modules.
+     */
     init {
         Timber.d("Evaluator init")
         this.modules = moduleFactory.registeredModules
     }
 
+    /**
+     * @return List of registered [Module] instances
+     */
+    fun getModules(): List<Module> {
+        return this.modules
+    }
+
+    /**
+     * Main action of [Evaluator].
+     * Evaluate an app by package name trough calling all registered [modules] to evaluate the app. Resulting scores are collected and calculates average as main Score.
+     * Creates and stores a [Report] with this score and additional metadata in the database.
+     * Currently, only weights set in Modules are respected.
+     * Suspends for fetching pp info from database.
+     *
+     * @param packageName
+     * @param context
+     * @see Report
+     * @return Pair of the created Report and  a List of corresponding SubReports of the different modules
+     */
     suspend fun evaluateApp(packageName: String, context: Context): Pair<Report, List<SubReport>>? {
 
+        // fetching app info from db
         val app = HeimdallDatabase.instance?.appDao?.getAppByName(packageName)
+
+        // break if no info found
         if (app == null) {
             Timber.d("Evaluation of $packageName failed, because Database Entry not found")
             return null
         }
-        Timber.d("Evaluating score of $packageName")
-        val results = mutableListOf<ModuleResult>()
-        var n = this.modules.size
 
+        Timber.d("Evaluating score of $packageName")
+
+        val results = mutableListOf<ModuleResult>()
+
+        // count of valid module responses. Might be reduced during loop - needed to calculate average
+        var validResponses = this.modules.size
+
+        // looping trough and requesting evaluation
         for (module in this.modules) {
 
+            // Result of current module
             val result = module.calculateOrLoad(app, context)
+
+            // case: Result failure - no valid result
             if (result.isFailure) {
-                Timber.log(
-                    3,
+                // logging failure
+                Timber.w(
                     result.exceptionOrNull(),
                     "Module $module encountered Error while evaluating $app"
                 )
-                n--
+                // reducing count for average computation
+                validResponses--
                 continue
-            } else {
+            }
+            // case: Result success - valid response
+            else {
+                // should not be necessary to call safe getOrNull but compiler complained
                 result.getOrNull()?.let {
+
+                    // add to result collection
                     results.add(it)
+
+                    // logging
                     Timber.d("module $module result: ${it.score}")
                 }
             }
-
         }
-        // TODO implement weights
-        val totalScore = results.fold(0.0) { sum, s -> sum + s.score } / n
+        // compute average score, respecting (default) weights of modules
+        val totalScore = results.fold(0.0) { sum, s -> sum + s.score * s.weight } / validResponses
+        // logging
         Timber.d("evaluation complete for ${app.packageName}: $totalScore}")
+        // creating Report and stroring database
         return createReport(app.packageName, totalScore, results)
     }
 
+    /**
+     * Create a [Report] for the app and transforms [ModuleResult] to [SubReport], using current time as timestamp.
+     * If successful, storing both in database
+     *
+     * @param packageName
+     * @param totalScore Overall Score computed for app
+     * @param moduleResults List of ModuleResults
+     * @return  Pair of the created Report and transformed SubReports
+     */
     private suspend fun createReport(
         packageName: String,
         totalScore: Double,
         moduleResults: MutableList<ModuleResult>
     ): Pair<Report, List<SubReport>>? {
+        // logging
         Timber.d("writing Report and SubReports to Database")
+
+        // creating Report with current time as timestamp
         val report = Report(
             appPackageName = packageName,
             timestamp = System.currentTimeMillis(),
             mainScore = totalScore
         )
 
+        // storing report in database
         HeimdallDatabase.instance?.reportDao?.insertReport(report)?.let { reportId ->
+            // if successful, create SubReport for each ModuleResult
             val subReports = moduleResults.map() { result ->
                 SubReport(
                     moduleResult = result,
@@ -83,13 +148,21 @@ class Evaluator {
                     timestamp = System.currentTimeMillis()
                 )
             }
+            // bulk store in database
             HeimdallDatabase.instance?.subReportDao?.insertSubReport(subReports)
             return Pair(report, subReports)
         }
+        // case: failure
         Timber.d("failed to write report for $packageName to database")
         return null
     }
 
+    /**
+     * Export report to json, fetching corresponding SubScores and
+     *
+     * @param report
+     * @return
+     */
     suspend fun exportReportToJson(report: Report?): String {
         if (report == null) return JSONObject.NULL.toString()
         CoroutineScope(Dispatchers.IO).launch {
