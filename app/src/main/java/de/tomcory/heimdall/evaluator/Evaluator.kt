@@ -6,9 +6,6 @@ import de.tomcory.heimdall.evaluator.modules.ModuleFactory
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -19,6 +16,9 @@ import timber.log.Timber
 
 /**
  * Evaluator TODO
+ * should be called via Evaluator.instance.
+ * Evaluator Service responsible for all app evaluation, scoring, reports and modulespecific UI elements.
+ * Abstraction interface between modules and application.
  *
  * @constructor Create empty Evaluator
  */
@@ -28,6 +28,8 @@ class Evaluator {
      * Should not be set manually ore altered, only set trough [ModuleFactory.registeredModules].
      */
     private var modules: List<Module>
+
+
     private val moduleFactory: ModuleFactory = ModuleFactory
 
     /**
@@ -157,29 +159,39 @@ class Evaluator {
         return null
     }
 
+    // TODO export to file
     /**
-     * Export report to json, fetching corresponding SubScores and
+     * Export report to json, fetching corresponding SubScores and issue module parsing.
+     * Currently only exporting JSON to log.
      *
+     * @see kotlinx.serialization.json
      * @param report
-     * @return
+     * @return report with subreports as json encoded string
      */
-    suspend fun exportReportToJson(report: Report?): String {
+    fun exportReportToJson(report: Report?): String {
+        // return empty JSON if report is null
         if (report == null) return JSONObject.NULL.toString()
-        CoroutineScope(Dispatchers.IO).launch {
 
-        }
+        // fetch corresponding subreports from db and issue encoding for each module
         val subReports: List<JsonElement> = modules.map {
             val subReport =
                 HeimdallDatabase.instance?.subReportDao?.getSubReportsByPackageNameAndModule(
                     report.appPackageName,
                     it.name
                 )
+            // issue encoding of subreport in module
+            // needed because only thies module knows, what data it put in additionalDetails
             it.exportToJsonObject(subReport)
         }
+        // create JSON array from list
         val subReportList = JsonArray(subReports)
+        // report to JSONObject
         var serializedReport: JsonObject = Json.encodeToJsonElement(report) as JsonObject
+        // appending subreports list to JSON Report
         serializedReport = JsonObject(serializedReport.plus(Pair("subReports", subReportList)))
+        // logginh
         Timber.d("exported report $report\nto JSON:\n$serializedReport")
+        // return JSON report as String
         return serializedReport.toString()
     }
 
