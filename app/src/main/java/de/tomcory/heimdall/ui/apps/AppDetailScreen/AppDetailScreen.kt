@@ -188,7 +188,7 @@ data class AppDetailScreeUIState(
     val packageName: String = app.packageName,
     val packageIcon: Drawable? = app.icon,
 
-    val modules: List<Module> = Evaluator.instance.modules,
+    val modules: List<Module> = Evaluator.instance.getModules(),
     var dropdownExpanded: MutableState<Boolean> = mutableStateOf(false),
     val snackbarHostState: SnackbarHostState = SnackbarHostState()
 )
