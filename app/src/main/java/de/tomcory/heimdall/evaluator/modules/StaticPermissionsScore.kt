@@ -30,7 +30,6 @@ import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
-import de.tomcory.heimdall.persistence.database.entity.SubReportBase
 import de.tomcory.heimdall.ui.apps.DonutChart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +37,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
+import org.json.JSONObject
 import timber.log.Timber
 
 class StaticPermissionsScore : Module() {
@@ -176,10 +181,21 @@ class StaticPermissionsScore : Module() {
         }
     }
 
-    override fun exportJSON(subReport: SubReport): String {
-        val decodedInfo = decode(subReport.additionalDetails)
-        return Json.encodeToString(SubReportWithPermissionInfo(subReport, decodedInfo))
 
+    override fun exportToJsonObject(subReport: SubReport?): JsonObject {
+        if (subReport == null) return buildJsonObject {
+            put(name, JSONObject.NULL as JsonElement)
+        }
+        val permissionInfo: PermissionCountInfo? = decode(subReport.additionalDetails)
+        val permissionInfoJson = Json.encodeToJsonElement(permissionInfo).jsonObject
+        var serializedJsonObject: JsonObject = Json.encodeToJsonElement(subReport).jsonObject
+        serializedJsonObject = JsonObject(serializedJsonObject.minus("additionalDetails"))
+        val additionalPair = Pair("permission info", permissionInfoJson)
+        return JsonObject(serializedJsonObject.plus(additionalPair))
+    }
+
+    override fun exportToJson(subReport: SubReport?): String {
+        return exportToJsonObject(subReport).toString()
     }
 }
 
@@ -189,33 +205,4 @@ data class PermissionCountInfo(
     val dangerousPermissionCount: Int,
     val signaturePermissionCount: Int,
     val normalPermissionCount: Int
-) {
-    override fun toString(): String {
-        return """
-            found $dangerousPermissionCount 'dangerous' permissions
-            found $signaturePermissionCount 'signature' permissions
-            found $normalPermissionCount 'normal' permissions
-        """.trimIndent()
-    }
-}
-
-@Serializable
-private data class SubReportWithPermissionInfo constructor(
-    override val reportId: Long,
-    override val packageName: String,
-    override val module: String,
-    override val score: Float,
-    override val weight: Double,
-    override val timestamp: Long,
-    val permissionCountInfo: PermissionCountInfo?
-) : SubReportBase() {
-    constructor(subReport: SubReport, permissionCountInfo: PermissionCountInfo?) : this(
-        subReport.reportId,
-        subReport.packageName,
-        subReport.module, subReport.score,
-        subReport.weight,
-        subReport.timestamp,
-        permissionCountInfo
-    )
-}
-
+)

@@ -33,6 +33,7 @@ import de.tomcory.heimdall.evaluator.ModuleResult
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
+import kotlinx.serialization.json.JsonObject
 
 abstract class Module {
 
@@ -96,7 +97,9 @@ abstract class Module {
         return this.name
     }
 
-    abstract fun exportJSON(subReport: SubReport): String
+    abstract fun exportToJsonObject(subReport: SubReport?): JsonObject
+
+    abstract fun exportToJson(subReport: SubReport?): String
 }
 
 

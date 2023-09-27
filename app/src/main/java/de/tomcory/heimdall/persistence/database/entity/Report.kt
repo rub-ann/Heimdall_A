@@ -3,7 +3,9 @@ package de.tomcory.heimdall.persistence.database.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity
 data class Report(
         @PrimaryKey(autoGenerate = true)

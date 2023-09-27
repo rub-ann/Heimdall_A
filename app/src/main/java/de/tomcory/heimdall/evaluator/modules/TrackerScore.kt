@@ -28,27 +28,35 @@ import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
-import de.tomcory.heimdall.persistence.database.entity.SubReportBase
 import de.tomcory.heimdall.persistence.database.entity.Tracker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 import timber.log.Timber
 
-class TrackerScore: Module() {
+class TrackerScore : Module() {
     override val name: String = "TrackerScore"
     val label = "Tracker Libraries"
 
-    override suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate: Boolean): Result<ModuleResult> {
+    override suspend fun calculateOrLoad(
+        app: App,
+        context: Context,
+        forceRecalculate: Boolean
+    ): Result<ModuleResult> {
         // TODO implement lazy loading from Database
         val trackers = HeimdallDatabase.instance?.appXTrackerDao
             ?.getAppWithTrackers(app.packageName)?.trackers ?: listOf()
 
         val score = maxOf(1f - trackers.size * 0.2f, 0f)
-        val additionalDetails:String = Json.encodeToString(trackers)
+        val additionalDetails: String = Json.encodeToString(trackers)
         return Result.success(ModuleResult(this.name, score, additionalDetails = additionalDetails))
     }
 
@@ -95,7 +103,7 @@ class TrackerScore: Module() {
 
     @Composable
     fun LibraryUICardContent(report: Report?, context: Context) {
-        var trackers: List<Tracker> by remember { mutableStateOf(listOf())}
+        var trackers: List<Tracker> by remember { mutableStateOf(listOf()) }
         var loadingTrackers by remember { mutableStateOf(true) }
 
         LaunchedEffect(key1 = 2, block = {
@@ -109,7 +117,11 @@ class TrackerScore: Module() {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
 
-        AnimatedVisibility(visible = !loadingTrackers, enter = slideInVertically(), exit = slideOutVertically()) {
+        AnimatedVisibility(
+            visible = !loadingTrackers,
+            enter = slideInVertically(),
+            exit = slideOutVertically()
+        ) {
             Column {
                 if (trackers.isNotEmpty()) {
                     for (tracker in trackers) {
@@ -118,7 +130,8 @@ class TrackerScore: Module() {
                             supportingContent = { Text(text = tracker.web) },
                             modifier = Modifier.clickable(tracker.web.isNotEmpty()) {
                                 // open the tracker's URL in the browser
-                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(tracker.web))
+                                val browserIntent =
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(tracker.web))
                                 ContextCompat.startActivity(context, browserIntent, null)
                             }
                         )
@@ -130,30 +143,19 @@ class TrackerScore: Module() {
         }
     }
 
-    override fun exportJSON(subReport: SubReport): String {
-        val info = decode(subReport.additionalDetails)
-        val customSubReport = SubReportWithTrackerInfo(subReport = subReport, trackers = info)
-        return Json.encodeToString(customSubReport)
+    override fun exportToJsonObject(subReport: SubReport?): JsonObject {
+        if (subReport == null) return buildJsonObject {
+            put(name, "No Info found")
+        }
+        val trackers =
+            Json.encodeToJsonElement(Json.decodeFromString<List<Tracker>>(subReport.additionalDetails)).jsonArray
+        var serializedJsonObject: JsonObject = Json.encodeToJsonElement(subReport).jsonObject
+        serializedJsonObject = JsonObject(serializedJsonObject.minus("additionalDetails"))
+        val additionalPair = Pair("trackers", trackers)
+        return JsonObject(serializedJsonObject.plus(additionalPair))
     }
-}
 
-
-@Serializable
-private data class SubReportWithTrackerInfo constructor(
-    override val reportId: Long,
-    override val packageName: String,
-    override val module: String,
-    override val score: Float,
-    override val weight: Double,
-    override val timestamp: Long,
-    val trackers: List<Tracker>
-) : SubReportBase() {
-    constructor(subReport: SubReport, trackers: List<Tracker>) : this(
-        subReport.reportId,
-        subReport.packageName,
-        subReport.module, subReport.score,
-        subReport.weight,
-        subReport.timestamp,
-        trackers
-    )
+    override fun exportToJson(subReport: SubReport?): String {
+        return exportToJsonObject(subReport).toString()
+    }
 }
