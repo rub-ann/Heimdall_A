@@ -77,7 +77,7 @@ fun AllAppsChart(
         Timber.d("AllAppsChart debug: total: $total, arc: $arcRange, totalScore: $totalScore\n$appSets\n ")
         Box(contentAlignment = Alignment.Center) {
             Image(
-                painter = painterResource(R.drawable.ic_heimdall_round),
+                painter = painterResource(R.drawable.ic_heimdall_logo_round),
                 contentDescription = "Heimdall App Icon",
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(
