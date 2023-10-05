@@ -42,6 +42,9 @@ import de.tomcory.heimdall.ui.theme.noReportScoreColor
 import de.tomcory.heimdall.ui.theme.questionableScoreColor
 import de.tomcory.heimdall.ui.theme.unacceptableScoreColor
 
+/**
+ *
+ */
 @Composable
 fun DeviceOverview(
     viewModel: DeviceOverviewViewModel = viewModel(),
@@ -72,8 +75,8 @@ fun DeviceOverview(
     ) {
 
         AnimatedVisibility(visible = uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {
-                CircularProgressIndicator()
-                Text(text = "Loading apps...")
+            CircularProgressIndicator()
+            Text(text = "Loading apps...")
         }
 
         AnimatedVisibility(visible = !uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {

@@ -15,33 +15,32 @@ import org.json.JSONObject
 import timber.log.Timber
 
 /**
- * Evaluator TODO
- * should be called via Evaluator.instance.
- * Evaluator Service responsible for all app evaluation, scoring, reports and modulespecific UI elements.
+ * Evaluator Service responsible for all app evaluation, scoring, creating and storing reports and module specific UI elements.
  * Abstraction interface between modules and application.
+ * Should always be called via [Evaluator.instance].
  *
- * @constructor Create empty Evaluator
+ * @constructor should not be manually constructed, use [Evaluator.instance] instead.
  */
 class Evaluator {
     /**
-     * List of Modules known to the evaluator. Only modules included here are considered in evaluation.
+     * List of [Module]s known to the evaluator. Only modules included here are considered in evaluation.
      * Should not be set manually ore altered, only set trough [ModuleFactory.registeredModules].
      */
     private var modules: List<Module>
 
 
+    /**
+     * [ModuleFactory] for instantiating modules
+     */
     private val moduleFactory: ModuleFactory = ModuleFactory
 
-    /**
-     * instantiates an [ModuleFactory] Object and sets [modules] registered modules.
-     */
     init {
         Timber.d("Evaluator init")
         this.modules = moduleFactory.registeredModules
     }
 
     /**
-     * @return List of registered [Module] instances
+     * Returns a [List] of registered [Module] instances know to the Evaluator
      */
     fun getModules(): List<Module> {
         return this.modules
@@ -49,15 +48,18 @@ class Evaluator {
 
     /**
      * Main action of [Evaluator].
-     * Evaluate an app by package name trough calling all registered [modules] to evaluate the app. Resulting scores are collected and calculates average as main Score.
+     * Evaluates an app by [packageName] trough calling all registered [modules] to evaluate the app.
+     * Resulting scores are collected and calculates average as main Score.
      * Creates and stores a [Report] with this score and additional metadata in the database.
-     * Currently, only weights set in Modules are respected.
-     * Suspends for fetching pp info from database.
      *
-     * @param packageName
-     * @param context
+     * Currently, only weights set in Modules are respected.
+     *
+     * Suspends for fetching app info from database.
+     * [context] may be used for computation, e.g. calling package manager.
+     *
+     * Returns the created [Report] and associated [SubReport]s
+     *
      * @see Report
-     * @return Pair of the created Report and  a List of corresponding SubReports of the different modules
      */
     suspend fun evaluateApp(packageName: String, context: Context): Pair<Report, List<SubReport>>? {
 
@@ -116,13 +118,10 @@ class Evaluator {
     }
 
     /**
-     * Create a [Report] for the app and transforms [ModuleResult] to [SubReport], using current time as timestamp.
+     * Creates a [Report] for the app containing [packageName] and [totalScore] and transforms [ModuleResult] to [SubReport], adding metadata like current time as timestamp.
      * If successful, storing both in database
      *
-     * @param packageName
-     * @param totalScore Overall Score computed for app
-     * @param moduleResults List of ModuleResults
-     * @return  Pair of the created Report and transformed SubReports
+     * Returns  Pair of the created Report and transformed SubReports
      */
     private suspend fun createReport(
         packageName: String,
@@ -161,12 +160,11 @@ class Evaluator {
 
     // TODO export to file
     /**
-     * Export report to json, fetching corresponding SubScores and issue module parsing.
+     * Export [report] to json, fetching corresponding [SubReport]s and issue parsing by each module.
      * Currently only exporting JSON to log.
      *
      * @see kotlinx.serialization.json
-     * @param report
-     * @return report with subreports as json encoded string
+     * @return report with supports as json encoded string
      */
     fun exportReportToJson(report: Report?): String {
         // return empty JSON if report is null
@@ -179,7 +177,7 @@ class Evaluator {
                     report.appPackageName,
                     it.name
                 )
-            // issue encoding of subreport in module
+            // issue encoding of sub-report in module
             // needed because only thies module knows, what data it put in additionalDetails
             it.exportToJsonObject(subReport)
         }
@@ -189,16 +187,18 @@ class Evaluator {
         var serializedReport: JsonObject = Json.encodeToJsonElement(report) as JsonObject
         // appending subreports list to JSON Report
         serializedReport = JsonObject(serializedReport.plus(Pair("subReports", subReportList)))
-        // logginh
+        // logging
         Timber.d("exported report $report\nto JSON:\n$serializedReport")
         // return JSON report as String
         return serializedReport.toString()
     }
 
     companion object {
+        // to assert singleton, this class is instantiated once and then referred to by this property
         var instance: Evaluator = Evaluator()
             private set
 
+        // not sure if tis is necessary; copied from HeimdallDatabase but this installation is less complex
         @JvmStatic
         fun init(): Boolean {
             instance = Evaluator()

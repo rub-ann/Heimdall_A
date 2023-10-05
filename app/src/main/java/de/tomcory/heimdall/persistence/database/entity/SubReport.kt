@@ -5,8 +5,21 @@ import androidx.room.Entity
 import de.tomcory.heimdall.evaluator.ModuleResult
 import kotlinx.serialization.Serializable
 
-// score has to be between 0.0 and 1.0
-// additional data jas to be serialized as String; eg. as JSON
+/**
+ * Su-report data class for storing and encapsulating metric results of modules in database.
+ * Modules are later handed these for export or creating UI elements.
+ *
+ * @property reportId Reference to the corresponding main [Report]
+ * @property packageName On what package is this reporting
+ * @property module Name of the module issuing this sub-report
+ * @property score Score the package got in this specific metric; ranges from 0 to 1 (inclusive)
+ * @property timestamp Timestamp this sub-report was created, device time in MilliSeconds
+ * @property weight Factor for how the score of this report is weighted in computation; default is 1
+ * @property additionalDetails The module can store more report details here in a String, e.g. encoded as JSON. This could be information that is later to be displayed in UI.
+ * @constructor Offers two constructors, one from plain values, one from an [ModuleResult], copying ist values.
+ *
+ * @see Report
+ */
 @Serializable
 @Entity(primaryKeys = ["reportId", "module"])
 data class SubReport(
@@ -20,6 +33,9 @@ data class SubReport(
     val weight: Double = 1.0,
     val additionalDetails: String = "",
 ) {
+    /**
+     * constructor for inferring a sub-report from [ModuleResult]
+     */
     constructor(
         moduleResult: ModuleResult,
         reportId: Long,
@@ -29,11 +45,10 @@ data class SubReport(
     ) : this(
         reportId = reportId,
         packageName = packageName,
-        module = moduleResult.module,
+        module = moduleResult.moduleName,
         score = moduleResult.score,
         weight = weight,
         timestamp = timestamp,
         additionalDetails = moduleResult.additionalDetails
-    ) {
-    }
+    )
 }

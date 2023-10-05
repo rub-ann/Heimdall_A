@@ -35,27 +35,67 @@ import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
 import kotlinx.serialization.json.JsonObject
 
+/**
+ * Abstract class as template for all modules describing an evaluation metric.
+ * All Modules should inherit from this and implement the mandatory properties and function.
+ *
+ * @constructor Create empty Module
+ */
 abstract class Module {
 
+    /**
+     * Name describing this metric. Used for
+     */
     abstract val name: String
 
-    val defaultWeight:Double = 1.0
+    /**
+     * Weight factor used in [Evaluator] score computation
+     */
+    val weight: Double = 1.0
 
-    abstract suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate:Boolean = false): Result<ModuleResult>
+    /**
+     * Main function to compute score for an app in regards to the privacy metric this module implements.
+     * Dynamic modules can use context of app data to generate a result every call.
+     * Static modules can decide to load a possibly existing score from the database if the metric relies on non-changing parameters to reduce load.
+     *
+     * @param app Database entry containing app metadata
+     * @param context Context to enable computation resources like package manager
+     * @param forceRecalculate Indicates to static modules that must recompute
+     * @return [Result] containing a [ModuleResult] if successful
+     */
+    abstract suspend fun calculateOrLoad(
+        app: App,
+        context: Context,
+        forceRecalculate: Boolean = false
+    ): Result<ModuleResult>
 
+    // TODO make an evaluator function that loads sub-reports from db so that this is only called
+    //  from evaluator and takes a a sub-report as argument
+    /**
+     * Called by UI and should return a generated `@Composable` [UICard]
+     *
+     * @param report [Report] the UICard should describe
+     */
     @Composable
     abstract fun BuildUICard(report: Report?)
 
+    /**
+     * Standard format `@Composable` the UI expects to display additional metric details.
+     *
+     * @param title Heading title of the UI Card. Should be understandable by users
+     * @param infoText Help text to be displayed if the user wishes more information about this metric
+     * @param content `@Composable` UI content of the card
+     * @receiver
+     */
     @Composable
     fun UICard(
-        title:String,
+        title: String,
         infoText: String,
-        content: @Composable() () -> Unit
-    ){
+        content: @Composable () -> Unit
+    ) {
+        // indicated if the help text should be displayed or not
         var showInfoText: Boolean by remember { mutableStateOf(false) }
-        OutlinedCard(
-            // modifier = Modifier.padding(10.dp, 10.dp)
-        ) {
+        OutlinedCard {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -68,12 +108,14 @@ abstract class Module {
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
-               ) {
+                ) {
+                    // Card Title
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center
                     )
+                    // Button to toggle explanatory help text
                     IconButton(
                         onClick = { showInfoText = !showInfoText },
                         enabled = true,
@@ -82,37 +124,59 @@ abstract class Module {
                         Icon(Icons.Outlined.Info, "infoTextButton")
                     }
                 }
+                // Help text explaining the additional scoring details of the module
                 AnimatedVisibility(visible = showInfoText) {
-                    Text(text = infoText, style= MaterialTheme.typography.labelMedium.merge(
-                        TextStyle(fontStyle = FontStyle.Italic)
-                    ))
+                    Text(
+                        text = infoText, style = MaterialTheme.typography.labelMedium.merge(
+                            TextStyle(fontStyle = FontStyle.Italic)
+                        )
+                    )
                     Spacer(modifier = Modifier.height(5.dp))
                 }
+                // render Card content
                 content()
             }
         }
     }
 
+    /**
+     * Returns [name] for display and logging purposes
+     */
     override fun toString(): String {
         return this.name
     }
 
+    /**
+     * Transforms [subReport] to [JsonObject], decoding and appending [SubReport.additionalDetails] as class specific property;
+     * returning one coherent JsonObjet.
+     *
+     * Use [exportToJson] for String representation.
+     * @see exportToJson
+     */
     abstract fun exportToJsonObject(subReport: SubReport?): JsonObject
 
+    /**
+     * Similar to [exportToJsonObject], but returning JSON as [String].
+     * @see exportToJsonObject
+     */
     abstract fun exportToJson(subReport: SubReport?): String
 }
 
-
+/**
+ * Debugging Preview of UICard Composable
+ */
 @Preview
 @Composable
-fun UICardPreview(){
+fun UICardPreview() {
     TrackerScore().UICard(
         title = "TestCard",
         infoText = "This Module examines a particular part of the app. A lower score means is it not particularly privacy conscious."
-    ){
-        Spacer(modifier = Modifier
-            .height(100.dp)
-            .fillMaxSize())
+    ) {
+        Spacer(
+            modifier = Modifier
+                .height(100.dp)
+                .fillMaxSize()
+        )
     }
 }
 

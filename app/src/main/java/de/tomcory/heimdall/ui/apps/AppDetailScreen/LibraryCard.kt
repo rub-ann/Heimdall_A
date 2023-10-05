@@ -15,6 +15,13 @@ import androidx.core.content.ContextCompat.startActivity
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.Tracker
 
+@Deprecated(
+    "UI card creation has been moved into the modules",
+    ReplaceWith(
+        "Module.buildUICard()",
+        imports = ["de.tomcory.heimdall.evaluator.modules.Module.buildUICard()"]
+    )
+)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryCard(pkgInfo: PackageInfo) {
