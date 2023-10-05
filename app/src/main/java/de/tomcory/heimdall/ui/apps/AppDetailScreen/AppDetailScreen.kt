@@ -5,9 +5,10 @@ import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.evaluator.Evaluator
-import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
@@ -89,10 +90,15 @@ fun NewAppDetailScreen(
                     }
                 },
                 actions = {
-                    IconToggleButton(checked = false, onCheckedChange = { dropdownExpanded = !dropdownExpanded}, content = { Icon(
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = "More AppDetail Options"
-                    )})
+                    IconToggleButton(
+                        checked = false,
+                        onCheckedChange = { dropdownExpanded = !dropdownExpanded },
+                        content = {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = "More AppDetail Options"
+                            )
+                        })
                     DropdownMenu(
                         expanded = dropdownExpanded,
                         onDismissRequest = { dropdownExpanded = false }
@@ -102,7 +108,7 @@ fun NewAppDetailScreen(
                             onClick = {
                                 userRescanApp()
                                 scope.launch {
-                                    appDetailUiState.snackbarHostState.showSnackbar("App re.scanned")
+                                    appDetailUiState.snackbarHostState.showSnackbar("App re-scanned")
                                 }
                             }
                         )
@@ -124,7 +130,11 @@ fun NewAppDetailScreen(
                         Divider()
                         DropdownMenuItem(
                             text = { Text("Send Feedback") },
-                            onClick = { /* Handle send feedback! */ }
+                            onClick = {
+                                scope.launch {
+                                    appDetailUiState.snackbarHostState.showSnackbar("Sorry, not yet implemented")
+                                }
+                            }
                         )
                     }
                 }
@@ -136,31 +146,56 @@ fun NewAppDetailScreen(
         floatingActionButton = { RescanFloatingActionButton(userRescanApp) },
 
         ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(8.dp, 0.dp)
-        ){
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+        Column(Modifier.padding(padding)) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp, 0.dp)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
-            item {
-                ScoreCard(report = appDetailUiState.report)
+                item {
+                    ScoreCard(report = appDetailUiState.report)
+                }
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Button(
+                            onClick = { userUninstallApp() }) {
+                            Row {
+                                Icon(Icons.Default.Delete, contentDescription = "Uninstall Icon")
+                                Text(text = "Uninstall")
+                            }
+                        }
+                        Button(
+                            onClick = {
+                                userRescanApp()
+                                scope.launch {
+                                    appDetailUiState.snackbarHostState.showSnackbar("App re-scanned")
+                                }
+                            }) {
+                            Row {
+                                Icon(Icons.Default.Refresh, contentDescription = "Export Icon")
+                                Text(text = "Export")
+                            }
+                        }
+                    }
+                }
+                item {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
-
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            items(appDetailUiState.modules){module ->
-                module.BuildUICard(report = appWithReports.getLatestReport())
-                Spacer(modifier = Modifier.height(9.dp))
-            }
+            Evaluator.instance.renderModuleUICards(report = appWithReports.getLatestReport())
         }
     }
 }
-
 
 
 data class AppDetailScreeUIState(
@@ -188,7 +223,6 @@ data class AppDetailScreeUIState(
     val packageName: String = app.packageName,
     val packageIcon: Drawable? = app.icon,
 
-    val modules: List<Module> = Evaluator.instance.getModules(),
     var dropdownExpanded: MutableState<Boolean> = mutableStateOf(false),
     val snackbarHostState: SnackbarHostState = SnackbarHostState()
 )
