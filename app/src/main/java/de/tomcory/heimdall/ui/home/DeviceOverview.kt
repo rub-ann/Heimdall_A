@@ -49,15 +49,15 @@ import de.tomcory.heimdall.ui.theme.unacceptableScoreColor
 fun DeviceOverview(
     viewModel: DeviceOverviewViewModel = viewModel(),
     context: Context = LocalContext.current,
-    userScanApps: () -> Unit = {viewModel.scanApps(context)},
+    userScanApps: () -> Unit = { viewModel.scanApps(context) },
     showNoReportApps: Boolean = false
-) {
-    viewModel.updateApps()
+): DeviceOverviewViewModel {
     val uiState by viewModel.uiState.collectAsState()
     val animateFloat = remember { Animatable(0f) }
 
     val title = "Device Privacy Overview"
-    val infoText = "This is an overview over the apps installed on your device. They are grouped into 'unacceptable', 'questionable' and 'acceptable' in regards to their privacy impact."
+    val infoText =
+        "This is an overview over the apps installed on your device. They are grouped into 'unacceptable', 'questionable' and 'acceptable' in regards to their privacy impact."
 
     LaunchedEffect(animateFloat) {
         animateFloat.animateTo(
@@ -75,8 +75,14 @@ fun DeviceOverview(
     ) {
 
         AnimatedVisibility(visible = uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {
-            CircularProgressIndicator()
-            Text(text = "Loading apps...")
+            Column(
+                Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator()
+                Text(text = "Loading apps...")
+            }
         }
 
         AnimatedVisibility(visible = !uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {
@@ -115,6 +121,7 @@ fun DeviceOverview(
             }
         }
     }
+    return viewModel
 }
 
 // TODO load thresholds from preferenceStore somehow

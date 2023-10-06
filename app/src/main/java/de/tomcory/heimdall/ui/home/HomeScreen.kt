@@ -50,10 +50,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.tomcory.heimdall.persistence.datastore.PreferencesSerializer
+import de.tomcory.heimdall.scanner.traffic.components.HeimdallVpnService
 import de.tomcory.heimdall.ui.main.preferencesStore
 import de.tomcory.heimdall.ui.settings.PreferencesScreen
 import de.tomcory.heimdall.ui.theme.HeimdallTheme
-import de.tomcory.heimdall.scanner.traffic.components.HeimdallVpnService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -183,8 +183,12 @@ fun HomeScreen() {
                 }
             }
         ) {
+            var deviceOverviewViewModel: DeviceOverviewViewModel? = null
             if (openPreferences) {
-                PreferencesScreen { openPreferences = false }
+                PreferencesScreen {
+                    openPreferences = false
+                    deviceOverviewViewModel?.updateApps()
+                }
             }
             Column(
                 verticalArrangement = Arrangement.Center,
@@ -194,7 +198,7 @@ fun HomeScreen() {
                     .padding(it)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                DeviceOverview()
+                deviceOverviewViewModel = DeviceOverview()
             }
         }
     }
