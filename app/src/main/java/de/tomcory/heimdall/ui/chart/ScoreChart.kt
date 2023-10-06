@@ -2,7 +2,6 @@ package de.tomcory.heimdall.ui.chart
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOutExpo
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -19,16 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Cyan
-import androidx.compose.ui.text.TextStyle
 import de.tomcory.heimdall.ui.theme.BlueGradientBrush
 
 @Preview
@@ -47,13 +45,13 @@ fun ScoreChart(
         Color(0xFF1EB980)
     ),
     max: Double = 100.0,
-    size: Dp = 240.dp,
-    thickness: Dp = 20.dp,
+    size: Dp = 220.dp,
+    thickness: Dp = 15.dp,
     backgroundCircleColor: Color = Color.LightGray.copy(alpha = 0.3f),
     bottomGap: Float = 60f
 ) {
 
-    var animateFloat = remember { Animatable(0f) }
+    val animateFloat = remember { Animatable(0f) }
     LaunchedEffect(animateFloat) {
         animateFloat.animateTo(
             targetValue = 1f,
@@ -66,18 +64,11 @@ fun ScoreChart(
                     .size(size)
             ) {
 
-                var arcRadius = size.toPx() - thickness.toPx()
-                var startAngle = bottomGap / 2
-                val sweepAngle:Float = ((360-bottomGap/2 - startAngle) * (score/100)).toFloat()
+                val arcRadius = size.toPx() - thickness.toPx()
+                val startAngle = bottomGap / 2
+                val sweepAngle: Float =
+                    ((360 - bottomGap / 2 - startAngle) * (score / 100)).toFloat()
 
-                /*
-                drawCircle(
-                    color = backgroundCircleColor,
-                    radius = arcRadius / 2,
-                    style = Stroke(width = thickness.toPx(), cap = StrokeCap.Butt)
-                )
-                   */
-                //arcRadius -= gapBetweenCircles.toPx()
                 val colorArcOffset = (bottomGap / 360) / 2
                 val brush = Brush.sweepGradient(
                     0f + colorArcOffset to colors[0],
@@ -111,15 +102,5 @@ fun ScoreChart(
                 Text(text = "/ ${max.toInt()}", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
             }
         }
-
-        //Spacer(modifier = Modifier.height(4.dp + (0.5f * thickness.value).dp))
-
-        /*
-        Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
-            for (i in values.indices) {
-                DisplayLegend(value = values[values.size - 1 - i], color = colors[values.size - 1 - i], legend = legend[values.size - 1 - i])
-            }
-        }
-         */
     }
 }

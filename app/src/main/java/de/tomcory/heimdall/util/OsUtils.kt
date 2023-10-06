@@ -1,6 +1,5 @@
 package de.tomcory.heimdall.util
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -9,7 +8,6 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.system.OsConstants
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.ContextCompat.startActivity
 import timber.log.Timber
 import java.net.InetSocketAddress
@@ -43,10 +41,15 @@ object OsUtils {
     }
 
     // TODO delete from Database if successful
-    fun uninstallPackage(context: Context, packageName: String){
-        val uri: Uri        = Uri.fromParts("package", packageName, null)
+    fun uninstallPackage(context: Context, packageName: String) {
+        val uri: Uri = Uri.fromParts("package", packageName, null)
         val uninstallIntent = Intent(Intent.ACTION_DELETE, uri)
 
         startActivity(context, uninstallIntent, null)
+    }
+
+    fun shareIntent(context: Context, intent: Intent) {
+        val shareIntent = Intent.createChooser(intent, null)
+        startActivity(context, shareIntent, null)
     }
 }

@@ -1,14 +1,6 @@
 package de.tomcory.heimdall.evaluator
 
 import android.content.Context
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import de.tomcory.heimdall.evaluator.modules.Module
 import de.tomcory.heimdall.evaluator.modules.ModuleFactory
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
@@ -121,7 +113,7 @@ class Evaluator {
         val totalScore = results.fold(0.0) { sum, s -> sum + s.score * s.weight } / validResponses
         // logging
         Timber.d("evaluation complete for ${app.packageName}: $totalScore}")
-        // creating Report and stroring database
+        // creating Report and storing database
         return createReport(app.packageName, totalScore, results)
     }
 
@@ -164,19 +156,6 @@ class Evaluator {
         // case: failure
         Timber.d("failed to write report for $packageName to database")
         return null
-    }
-
-    @Composable
-    fun renderModuleUICards(report: Report?) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            items(modules) { module ->
-                module.BuildUICard(report = report)
-                Spacer(modifier = Modifier.height(9.dp))
-            }
-        }
     }
 
     // TODO export to file

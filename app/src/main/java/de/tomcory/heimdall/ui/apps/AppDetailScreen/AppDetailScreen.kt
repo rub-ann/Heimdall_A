@@ -5,10 +5,11 @@ import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -44,7 +45,7 @@ fun NewAppDetailScreen(
     context: Context = LocalContext.current,
     userRescanApp: () -> Unit = { appDetailViewModel.rescanApp(context) },
     userUninstallApp: () -> Unit = { appDetailViewModel.uninstallApp(context) },
-    userExportData: () -> Unit = { appDetailViewModel.exportToJson() }
+    userExportData: () -> Unit = { appDetailViewModel.exportToJson(context) }
 ) {
 
     val scope = rememberCoroutineScope()
@@ -143,7 +144,7 @@ fun NewAppDetailScreen(
         snackbarHost = {
             SnackbarHost(hostState = appDetailUiState.snackbarHostState)
         },
-        floatingActionButton = { RescanFloatingActionButton(userRescanApp) },
+        //floatingActionButton = { RescanFloatingActionButton(userRescanApp) },
 
         ) { padding ->
         Column(Modifier.padding(padding)) {
@@ -165,34 +166,34 @@ fun NewAppDetailScreen(
                             .fillMaxWidth()
                             .padding(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Button(
+                        FilledTonalButton(
                             onClick = { userUninstallApp() }) {
-                            Row {
-                                Icon(Icons.Default.Delete, contentDescription = "Uninstall Icon")
-                                Text(text = "Uninstall")
-                            }
+                            //Row {
+                            Icon(Icons.Default.Delete, contentDescription = "Uninstall Icon")
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(text = "Uninstall")
+                            // }
                         }
-                        Button(
+                        FilledTonalButton(
                             onClick = {
-                                userRescanApp()
                                 scope.launch {
-                                    appDetailUiState.snackbarHostState.showSnackbar("App re-scanned")
+                                    userExportData()
+                                    appDetailUiState.snackbarHostState.showSnackbar("Report exported to debugging-log")
                                 }
                             }) {
-                            Row {
-                                Icon(Icons.Default.Refresh, contentDescription = "Export Icon")
-                                Text(text = "Export")
-                            }
+                            Icon(Icons.Default.Share, contentDescription = "Export Icon")
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(text = "Export")
                         }
                     }
                 }
-                item {
-                    Spacer(modifier = Modifier.height(12.dp))
+                items(Evaluator.instance.getModules()) { module ->
+                    module.BuildUICard(report = appDetailUiState.report)
+                    Spacer(modifier = Modifier.height(9.dp))
                 }
             }
-            Evaluator.instance.renderModuleUICards(report = appWithReports.getLatestReport())
         }
     }
 }

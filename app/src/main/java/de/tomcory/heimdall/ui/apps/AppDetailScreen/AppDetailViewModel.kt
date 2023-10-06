@@ -1,11 +1,13 @@
 package de.tomcory.heimdall.ui.apps.AppDetailScreen
 
 import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.ViewModelFactoryDsl
 import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
+import de.tomcory.heimdall.util.OsUtils
 import de.tomcory.heimdall.util.OsUtils.uninstallPackage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,10 +52,15 @@ class AppDetailViewModel(appWithReports: AppWithReports) : ViewModel() {
         _uiState.value = AppDetailScreeUIState(app)
     }
 
-    fun exportToJson() {
+    fun exportToJson(context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
-            Evaluator.instance.exportReportToJson(uiState.value.report)
-            // TODO write to local file
+            val json = Evaluator.instance.exportReportToJson(uiState.value.report)
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, json)
+                type = "text/json"
+            }
+            OsUtils.shareIntent(context, sendIntent)
         }
     }
 
