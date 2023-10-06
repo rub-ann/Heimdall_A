@@ -16,7 +16,7 @@ fun Navigation(navController: NavHostController) {
             HomeScreen()
         }
         composable(NavigationItem.Apps.route) {
-            AppsScreen(navController)
+            AppsScreen()
         }
         composable(NavigationItem.Database.route) {
             DatabaseScreen()

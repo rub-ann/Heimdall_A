@@ -3,7 +3,6 @@ package de.tomcory.heimdall.ui.apps
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -26,24 +25,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.navigation.NavHostController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import de.tomcory.heimdall.R
-import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
-import de.tomcory.heimdall.scanner.code.ScanManager
 import de.tomcory.heimdall.ui.apps.AppDetailScreen.NewAppDetailScreen
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 @Composable
 fun AppInfoList(paddingValues: PaddingValues, apps: List<AppWithReports>) {
@@ -144,32 +137,33 @@ fun StrikethroughText(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AppsScreen(navController: NavHostController?) {
-    val context = LocalContext.current
-    var loadingApps by remember { mutableStateOf(true) }
+fun AppsScreen(
+    viewModel: AppsScreenViewModel = viewModel(),
+    context: Context = LocalContext.current,
+) {
 
-    var apps by remember { mutableStateOf(listOf<AppWithReports>()) }
-
-    LaunchedEffect(key1 = null) {
-        apps = getAppsWithReport(context).sorted()
-        Timber.d("fetched ${apps.size} apps with reports")
-        loadingApps = false
+    val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(key1 = 0) {
+        viewModel.loadIcons(context)
     }
-
     Scaffold(
         topBar = {
             AppsTopBar()
         }
     ) {
-        AnimatedVisibility(visible = loadingApps, enter = fadeIn(), exit = fadeOut()) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(visible = uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
                 CircularProgressIndicator()
                 Text(text = "Loading apps...")
             }
         }
 
-        AnimatedVisibility(visible = !loadingApps, enter = fadeIn(), exit = fadeOut()) {
-            AppInfoList(it, apps = apps)
+        AnimatedVisibility(visible = !uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {
+            AppInfoList(it, apps = uiState.apps)
         }
     }
 }
@@ -219,57 +213,7 @@ fun AppsTopBar() {
 @Preview(showBackground = true)
 @Composable
 fun AppsScreenPreview() {
-    AppsScreen(null)
-}
-
-@Composable
-fun AppInfoCard(app: App) {
-    val isSelected by remember { mutableStateOf(false) }
-    val surfaceColor by animateColorAsState(
-        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary, label = "surfaceColorSelected"
-    )
-    Row(
-        modifier = Modifier
-            .height(88.dp)
-            .clickable {
-
-            }
-            .padding(16.dp, 12.dp, 24.dp, 12.dp)
-            .fillMaxWidth()
-    ) {
-        Image(
-            painter = rememberDrawablePainter(drawable = app.icon),
-            contentDescription = "App Icon",
-            modifier = Modifier
-                .size(56.dp)
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxHeight()) {
-            Text(
-                text = app.label,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                text = app.packageName,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                text = "16 Permissions (8 dangerous)",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
+    AppsScreen()
 }
 
 @Preview
@@ -286,18 +230,6 @@ fun AppListItemPreview() {
             .fillMaxWidth()
     )
 }
-
-suspend fun getAppsWithReport(context: Context): List<AppWithReports> =
-    withContext(Dispatchers.IO) {
-        var apps = HeimdallDatabase.instance?.appDao?.getAllAppWithReports() ?: listOf()
-        apps = apps.map {
-            if (it.app.icon == null && it.app.isInstalled) {
-                it.app.icon = ScanManager.getAppIcon(context, it.app.packageName)
-            }
-            it
-        }
-        return@withContext apps
-    }
 
 
 data class AppInfo(
