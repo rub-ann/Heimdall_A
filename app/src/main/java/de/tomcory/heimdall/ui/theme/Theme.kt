@@ -2,8 +2,8 @@ package de.tomcory.heimdall.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -87,7 +87,7 @@ fun HeimdallTheme(
 
   MaterialTheme(
     colorScheme = colors,
-    content = content
+      content = content
   )
 }
 
@@ -97,7 +97,10 @@ val BlueGradientBrush = Brush.linearGradient(colors = blueGradientColors)
 val GrayScaleGradientBrush = Brush.linearGradient(colors = grayscaleGradientColors)
 
 // colors for app score classification
+val goodScoreColor = Color(0xFF1EB980)
+val badScoreColor = md_theme_light_error
+
 val noReportScoreColor = Color.DarkGray
-val unacceptableScoreColor = md_theme_light_error
+val unacceptableScoreColor = badScoreColor // md_theme_light_error
 val questionableScoreColor = md_theme_dark_warning
-val acceptableScoreColor = md_theme_light_primary
+val acceptableScoreColor = goodScoreColor //md_theme_light_primary

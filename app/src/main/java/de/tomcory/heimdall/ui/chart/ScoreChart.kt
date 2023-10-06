@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.tomcory.heimdall.ui.theme.BlueGradientBrush
+import de.tomcory.heimdall.ui.theme.goodScoreColor
 
 @Preview
 @Composable
@@ -42,12 +43,11 @@ fun ScoreChart(
     score: Double,
     colors: List<Color> = listOf(
         MaterialTheme.colorScheme.error,
-        Color(0xFF1EB980)
+        goodScoreColor
     ),
     max: Double = 100.0,
     size: Dp = 220.dp,
     thickness: Dp = 15.dp,
-    backgroundCircleColor: Color = Color.LightGray.copy(alpha = 0.3f),
     bottomGap: Float = 60f
 ) {
 
