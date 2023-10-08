@@ -1,6 +1,10 @@
 package de.tomcory.heimdall.ui.chart
 
+
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseInOutExpo
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -20,6 +24,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,10 +64,19 @@ fun AllAppsChart(
     bottomGap: Float = 60f,
     appSets: List<ChartData>,
     totalScore: Float = -1f,
-    maxScore: Float = 100f
+    maxScore: Float = 100f,
 ) {
 
-    val total = appSets.sumOf { it.size }
+    val animateFloat = remember { Animatable(0f) }
+    LaunchedEffect(animateFloat) {
+        animateFloat.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 800, easing = EaseInOutExpo)
+        )
+    }
+
+
+    val total by remember { mutableStateOf(appSets.sumOf { it.size }) }
     val arcRange = 360f - bottomGap
 
     // Convert each value to angle
@@ -103,7 +117,7 @@ fun AllAppsChart(
                         drawArc(
                             color = appSets[setIndex].color,
                             startAngle = currentAngle,
-                            sweepAngle = sweepAngles[setIndex],
+                            sweepAngle = sweepAngles[setIndex] * animateFloat.value,
                             useCenter = false,
                             style = Stroke(width = thickness.toPx(), cap = StrokeCap.Round),
                             size = Size(arcRadius, arcRadius),
@@ -152,7 +166,7 @@ fun AllAppsChart(
             if (totalScore > -1f) {
                 Box {
                     Text(
-                        text = totalScore.toInt().toString(),
+                        text = (totalScore * animateFloat.value).toInt().toString(),
                         style = MaterialTheme.typography.displayLarge.merge(
                             TextStyle(brush = GrayScaleGradientBrush)
                         ),
@@ -181,7 +195,10 @@ fun AllAppsChart(
                 Text(text = "of your apps are")
                 appSets.forEach {
                     var showInfoText by remember { mutableStateOf(false) }
-                    ChartLegendItem(data = it, onTrigger = fun() { showInfoText = !showInfoText })
+                    ChartLegendItem(
+                        data = it,
+                        animationFactor = animateFloat.value,
+                        onTrigger = fun() { showInfoText = !showInfoText })
                     AnimatedVisibility(visible = showInfoText) {
                         HelpTextBox(infoText = it.infoText)
                     }
@@ -199,12 +216,12 @@ data class ChartData(
 )
 
 @Composable
-fun ChartLegendItem(data: ChartData, onTrigger: () -> Unit) {
+fun ChartLegendItem(data: ChartData, onTrigger: () -> Unit, animationFactor: Float) {
     ListItem(
         leadingContent = {
             Text(
                 color = data.color,
-                text = data.size.toString(),
+                text = (data.size * animationFactor).toInt().toString(),
                 style = MaterialTheme.typography.displaySmall.merge(
                     TextStyle(color = data.color)
                 ),

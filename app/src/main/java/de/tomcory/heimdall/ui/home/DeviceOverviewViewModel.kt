@@ -81,11 +81,13 @@ class DeviceOverviewViewModel() : ViewModel() {
 
 
     fun scanApps(context: Context) {
-        TODO("Not yet implemented")
         CoroutineScope(Dispatchers.IO).launch {
+            _uiState.update {
+                it.copy(scanningApps = true)
+            }
             Timber.d("scanning all apps")
-            //ScanManager(context).scanAllApps()
-
+            ScanManager.create(context).scanAllApps(context, uiState.value.scanAppsProgressFlow)
+            fetchApps()
         }
     }
 
