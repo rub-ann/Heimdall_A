@@ -58,9 +58,9 @@ fun DeviceOverview(
 ): DeviceOverviewViewModel {
     val uiState by viewModel.uiState.collectAsState()
 
-    val title = "Device Privacy Overview"
+    val title = "Device Privacy Score"
     val infoText =
-        "This is an overview over the apps installed on your device. They are grouped into 'unacceptable', 'questionable' and 'acceptable' in regards to their privacy impact."
+        "This is an overview over the apps installed on your device. They are grouped into 'unacceptable', 'questionable' and 'acceptable' in regards to their privacy impact. The large number is the total privacy score of your device, with a maximum of 100 points."
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

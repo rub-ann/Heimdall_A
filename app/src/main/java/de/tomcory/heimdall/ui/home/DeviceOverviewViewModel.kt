@@ -70,7 +70,8 @@ class DeviceOverviewViewModel() : ViewModel() {
             ChartData(
                 label[index],
                 color = uiState.value.colors.getOrElse(index) { Color.Unspecified },
-                size = item.size
+                size = item.size,
+                infoText = "This is the number of apps that have an ${label[index]} privacy score."
             )
         }
         if (!showNoReport) {

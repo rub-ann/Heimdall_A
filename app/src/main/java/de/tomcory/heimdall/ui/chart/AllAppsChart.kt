@@ -192,7 +192,7 @@ fun AllAppsChart(
                 horizontalAlignment = Alignment.CenterHorizontally
             )
             {
-                Text(text = "of your apps are")
+                Text(text = " < Of your apps are >")
                 appSets.forEach {
                     var showInfoText by remember { mutableStateOf(false) }
                     ChartLegendItem(
