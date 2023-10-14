@@ -6,5 +6,8 @@ object ModuleFactory {
     init {
         this.registeredModules.add(StaticPermissionsScore())
         this.registeredModules.add(TrackerScore())
+        /* add new modules here:
+        this.registeredModules.add(newModule())
+         */
     }
 }
