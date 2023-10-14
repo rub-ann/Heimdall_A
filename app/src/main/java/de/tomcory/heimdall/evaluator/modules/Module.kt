@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -169,14 +168,12 @@ abstract class Module {
 @Composable
 fun UICardPreview() {
     TrackerScore().UICard(
-        title = "TestCard",
-        infoText = "This Module examines a particular part of the app. A lower score means is it not particularly privacy conscious."
+        title = "Title",
+        infoText = "Info text; should explain what this module does on what data it displays"
     ) {
-        Spacer(
-            modifier = Modifier
-                .height(100.dp)
-                .fillMaxSize()
-        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(text = "Arbitrary content of card")
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
