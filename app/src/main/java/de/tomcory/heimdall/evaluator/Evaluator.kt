@@ -109,6 +109,10 @@ class Evaluator {
                 }
             }
         }
+        // check if result scores are in range 0..1
+        if (results.any { it.score > 1f || it.score < 0f }) {
+            Timber.w("some module result scores are not in range 0..1")
+        }
         // compute average score, respecting (default) weights of modules
         val totalScore = results.fold(0.0) { sum, s -> sum + s.score * s.weight } / validResponses
         // logging
