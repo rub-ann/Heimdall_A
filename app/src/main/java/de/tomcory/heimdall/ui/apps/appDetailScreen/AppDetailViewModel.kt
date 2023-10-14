@@ -1,10 +1,9 @@
-package de.tomcory.heimdall.ui.apps.AppDetailScreen
+package de.tomcory.heimdall.ui.apps.appDetailScreen
 
 import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.ViewModelFactoryDsl
 import de.tomcory.heimdall.evaluator.Evaluator
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
 import de.tomcory.heimdall.util.OsUtils
@@ -14,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -25,7 +25,6 @@ class AppDetailViewModelFactory(private val appWithReports: AppWithReports) :
     }
 }
 
-@ViewModelFactoryDsl
 class AppDetailViewModel(appWithReports: AppWithReports) : ViewModel() {
     private val _uiState = MutableStateFlow(AppDetailScreeUIState(appWithReports))
     val uiState: StateFlow<AppDetailScreeUIState> = _uiState.asStateFlow()
@@ -49,7 +48,9 @@ class AppDetailViewModel(appWithReports: AppWithReports) : ViewModel() {
     }
 
     fun updateApp(app: AppWithReports) {
-        _uiState.value = AppDetailScreeUIState(app)
+        _uiState.update {
+            AppDetailScreeUIState(app)
+        }
     }
 
     fun exportToJson(context: Context) {

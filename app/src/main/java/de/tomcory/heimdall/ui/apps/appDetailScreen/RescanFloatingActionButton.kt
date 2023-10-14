@@ -1,4 +1,4 @@
-package de.tomcory.heimdall.ui.apps.AppDetailScreen
+package de.tomcory.heimdall.ui.apps.appDetailScreen
 
 import androidx.compose.animation.scaleIn
 import androidx.compose.material.icons.Icons

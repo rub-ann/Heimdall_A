@@ -11,8 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import de.tomcory.heimdall.persistence.database.dao.AppWithReports
-import de.tomcory.heimdall.ui.apps.AppDetailScreen.NewAppDetailScreen
 import de.tomcory.heimdall.ui.apps.AppListItem
+import de.tomcory.heimdall.ui.apps.appDetailScreen.NewAppDetailScreen
 
 @Composable
 fun FlopApps(apps: List<AppWithReports>) {
