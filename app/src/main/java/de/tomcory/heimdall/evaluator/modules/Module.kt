@@ -48,7 +48,7 @@ abstract class Module {
     abstract val name: String
 
     /**
-     * Weight factor used in [Evaluator] score computation
+     * Weight factor used in [de.tomcory.heimdall.evaluator.Evaluator] score computation
      */
     val weight: Double = 1.0
 
