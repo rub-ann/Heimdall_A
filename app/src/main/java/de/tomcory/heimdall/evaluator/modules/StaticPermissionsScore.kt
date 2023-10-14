@@ -82,7 +82,7 @@ class StaticPermissionsScore : Module() {
         val countNormal = permProts.count { perm -> perm == PermissionInfo.PROTECTION_NORMAL }
 
         val score =
-            maxOf(1f - countDangerous * 0.1f - countSignature * 0.05f - countNormal * 0.01f, 0f)
+            maxOf(1f - countDangerous * 0.4f - countSignature * 0.02f - countNormal * 0.01f, 0f)
 
         val details =
             Json.encodeToString(PermissionCountInfo(countDangerous, countSignature, countNormal))
