@@ -11,8 +11,8 @@ import de.tomcory.heimdall.ui.home.HomeScreen
 
 @Composable
 fun Navigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = NavigationItem.Traffic.route) {
-        composable(NavigationItem.Traffic.route) {
+    NavHost(navController = navController, startDestination = NavigationItem.Home.route) {
+        composable(NavigationItem.Home.route) {
             HomeScreen()
         }
         composable(NavigationItem.Apps.route) {
