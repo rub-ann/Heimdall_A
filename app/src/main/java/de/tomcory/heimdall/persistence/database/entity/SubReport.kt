@@ -41,14 +41,13 @@ data class SubReport(
         reportId: Long,
         packageName: String,
         weight: Double = moduleResult.weight,
-        timestamp: Long
     ) : this(
         reportId = reportId,
         packageName = packageName,
         module = moduleResult.moduleName,
         score = moduleResult.score,
         weight = weight,
-        timestamp = timestamp,
+        timestamp = moduleResult.timestamp,
         additionalDetails = moduleResult.additionalDetails
     )
 }

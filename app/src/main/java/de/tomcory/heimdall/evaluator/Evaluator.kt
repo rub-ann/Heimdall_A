@@ -150,7 +150,6 @@ class Evaluator {
                     moduleResult = result,
                     reportId = reportId,
                     packageName = packageName,
-                    timestamp = System.currentTimeMillis()
                 )
             }
             // bulk store in database

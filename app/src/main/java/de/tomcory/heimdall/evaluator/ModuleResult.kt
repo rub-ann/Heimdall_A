@@ -13,5 +13,6 @@ data class ModuleResult(
     val moduleName: String,
     val score: Float,
     val weight: Double = 1.0,
-    val additionalDetails: String = ""
+    val additionalDetails: String = "",
+    val timestamp: Long = System.currentTimeMillis()
 )
