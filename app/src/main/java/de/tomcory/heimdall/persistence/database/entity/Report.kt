@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Data class and database entity for storing privacy reports about apps.
- * Primary key is [reportId] is generated automaticly on insert and should not be set manually.
+ * Primary key is [reportId] is generated automatically on insert and should not be set manually.
  * Expecting [appPackageName] as app name that is reported about and [timestamp] usually as current time in Milliseconds.
  * [mainScore] is the total score of the app and should be between 0 and 1.
  *
