@@ -10,14 +10,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import de.tomcory.heimdall.ui.theme.acceptableScoreColor
+import de.tomcory.heimdall.ui.theme.questionableScoreColor
+import de.tomcory.heimdall.ui.theme.unacceptableScoreColor
 
-private val colors = mapOf("red" to Color(0xFF914406), "yellow" to Color(0xFF5e5006), "green" to Color(0xFF437a5a))
+// private val colors = mapOf("red" to Color(0xFF914406), "yellow" to Color(0xFF5e5006), "green" to Color(0xFF437a5a))
+private val colors = mapOf(
+    "red" to unacceptableScoreColor,
+    "yellow" to questionableScoreColor,
+    "green" to acceptableScoreColor
+)
+
 
 @Composable
 fun SmallScoreIndicator(score:Double, size: Dp = 50.dp) {
@@ -28,7 +36,9 @@ fun SmallScoreIndicator(score:Double, size: Dp = 50.dp) {
     Box(modifier = Modifier
         .size(size)
     ) {
-        Canvas(modifier = Modifier.fillMaxSize().align(Alignment.Center)) {
+        Canvas(modifier = Modifier
+            .fillMaxSize()
+            .align(Alignment.Center)) {
             // val brush = Brush.radialGradient()
             drawRoundRect(
                 color = backgroundColor,
@@ -48,6 +58,17 @@ fun SmallScoreIndicator(score:Double, size: Dp = 50.dp) {
 
 @Preview
 @Composable
-fun SmallScoreIndicatorPreview(){
-    SmallScoreIndicator(score = .74)
+fun SmallScoreIndicatorPreviewAcceptable() {
+    SmallScoreIndicator(score = .90)
+}
+@Preview
+@Composable
+fun SmallScoreIndicatorPreviewQustionable() {
+    SmallScoreIndicator(score = .70)
+}
+
+@Preview
+@Composable
+fun SmallScoreIndicatorPreviewUnacceptable() {
+    SmallScoreIndicator(score = .23)
 }
