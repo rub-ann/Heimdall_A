@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -29,9 +30,11 @@ private val colors = mapOf(
 
 @Composable
 fun SmallScoreIndicator(score:Double, size: Dp = 50.dp) {
-    var backgroundColor = if (score > .75) colors["green"]!!
-    else if (score > .50) colors["yellow"]!!
-    else colors["red"]!!
+    val backgroundColor = remember {
+        if (score > .75) colors["green"]!!
+        else if (score > .50) colors["yellow"]!!
+        else colors["red"]!!
+    }
 
     Box(modifier = Modifier
         .size(size)
@@ -63,7 +66,7 @@ fun SmallScoreIndicatorPreviewAcceptable() {
 }
 @Preview
 @Composable
-fun SmallScoreIndicatorPreviewQustionable() {
+fun SmallScoreIndicatorPreviewQuestionable() {
     SmallScoreIndicator(score = .70)
 }
 

@@ -77,11 +77,13 @@ fun AllAppsChart(
 
 
     val total by remember { mutableStateOf(appSets.sumOf { it.size }) }
-    val arcRange = 360f - bottomGap
+    val arcRange = remember { 360f - bottomGap }
 
     // Convert each value to angle
-    val sweepAngles: List<Float> = appSets.map {
-        arcRange * it.size / total
+    val sweepAngles: List<Float> = remember {
+        appSets.map {
+            arcRange * it.size / total
+        }
     }
     Column(
         modifier = Modifier.fillMaxWidth(),
