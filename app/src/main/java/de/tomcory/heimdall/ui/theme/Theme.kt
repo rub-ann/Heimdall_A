@@ -79,16 +79,17 @@ fun HeimdallTheme(
   useDarkTheme: Boolean = isSystemInDarkTheme(),
   content: @Composable() () -> Unit
 ) {
-  val colors = if (!useDarkTheme) {
-    LightColors
-  } else {
-    DarkColors
-  }
+    val colors = if (!useDarkTheme) {
+        LightColors
+    } else {
+        DarkColors
+    }
 
-  MaterialTheme(
-    colorScheme = colors,
-      content = content
-  )
+    MaterialTheme(
+        colorScheme = colors,
+        content = content,
+
+        )
 }
 
 val blueGradientColors = listOf(Color.Cyan, Color(0xFF0066FF), Color(0xFFdd21d1) /*...*/)
@@ -104,3 +105,7 @@ val noReportScoreColor = Color.DarkGray
 val unacceptableScoreColor = badScoreColor // md_theme_light_error
 val questionableScoreColor = md_theme_dark_warning
 val acceptableScoreColor = goodScoreColor //md_theme_light_primary
+
+val altPrimaryColor = lightMint
+val altSecondaryColor = lightGreen
+val altTernaryColor = rose

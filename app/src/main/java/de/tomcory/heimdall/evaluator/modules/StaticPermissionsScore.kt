@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,6 +30,9 @@ import de.tomcory.heimdall.persistence.database.entity.App
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
 import de.tomcory.heimdall.ui.apps.DonutChart
+import de.tomcory.heimdall.ui.theme.altPrimaryColor
+import de.tomcory.heimdall.ui.theme.altSecondaryColor
+import de.tomcory.heimdall.ui.theme.altTernaryColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -166,9 +168,9 @@ class StaticPermissionsScore : Module() {
                         legend = listOf("Dangerous", "Normal", "Signature"),
                         size = 150.dp,
                         colors = listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.secondary,
-                            MaterialTheme.colorScheme.tertiary
+                            altPrimaryColor,
+                            altSecondaryColor,
+                            altTernaryColor
                         )
                     )
 
