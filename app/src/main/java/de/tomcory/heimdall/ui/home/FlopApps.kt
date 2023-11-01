@@ -17,9 +17,10 @@ import de.tomcory.heimdall.ui.apps.appDetailScreen.NewAppDetailScreen
 @Composable
 fun FlopApps(apps: List<AppWithReports>) {
 
-    val title = "Flop Apps"
-    val infoText =
+    val title = remember { "Flop Apps" }
+    val infoText = remember {
         "These are the worst and most privacy intrusive apps on your device. Maybe you want to reconsider using them."
+    }
     TopSegmentBar(title, infoText)
 
     Column() {

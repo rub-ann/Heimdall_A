@@ -103,7 +103,9 @@ fun AppInfoList(paddingValues: PaddingValues, apps: List<AppWithReports>) {
 
 @Composable
 fun AppListItem(appWithReports: AppWithReports, modifier: Modifier) {
-    val app = appWithReports.app
+    val app = remember {
+        appWithReports.app
+    }
     ListItem(
         headlineContent = {
             if (!app.isInstalled) {
@@ -120,25 +122,27 @@ fun AppListItem(appWithReports: AppWithReports, modifier: Modifier) {
                 Text(text = app.packageName)
             }
         },
-        leadingContent = {
-            val painter = if(app.icon == null) {
+        leadingContent = @Composable {
+            val painter = if (app.icon == null) {
                 painterResource(R.drawable.robot)
             } else {
                 rememberDrawablePainter(drawable = app.icon)
             }
 
-            val colorFilter = if(!app.isInstalled) {
-                ColorFilter.colorMatrix(ColorMatrix().apply {
-                    setToSaturation(0f) // setting saturation to 0 will convert image to grayscale
-                })
-            } else {
-                null
+            val colorFilter = remember {
+                if (!app.isInstalled) {
+                    ColorFilter.colorMatrix(ColorMatrix().apply {
+                        setToSaturation(0f) // setting saturation to 0 will convert image to grayscale
+                    })
+                } else {
+                    null
+                }
             }
 
             Image(painter = painter, contentDescription = "App icon", modifier = Modifier.size(40.dp), colorFilter = colorFilter)
         },
         trailingContent = {
-            val score: Double? = appWithReports.getLatestReport()?.mainScore
+            val score: Double? = remember { appWithReports.getLatestReport()?.mainScore }
             score?.let {
                 SmallScoreIndicator(score = score)
             }
@@ -150,9 +154,11 @@ fun AppListItem(appWithReports: AppWithReports, modifier: Modifier) {
 
 @Composable
 fun StrikethroughText(text: String, modifier: Modifier = Modifier) {
-    val annotatedString = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.LineThrough)) {
-            append(text)
+    val annotatedString = remember {
+        buildAnnotatedString {
+            withStyle(style = SpanStyle(textDecoration = TextDecoration.LineThrough)) {
+                append(text)
+            }
         }
     }
 

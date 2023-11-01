@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,10 +59,10 @@ fun DeviceOverview(
 ): DeviceOverviewViewModel {
     val uiState by viewModel.uiState.collectAsState()
 
-    val title = "Device Privacy Score"
-    val infoText =
+    val title = remember { "Device Privacy Score" }
+    val infoText = remember {
         "This is an overview over the apps installed on your device. They are grouped into 'unacceptable', 'questionable' and 'acceptable' in regards to their privacy impact. The large number is the total privacy score of your device, with a maximum of 100 points."
-
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -83,11 +84,15 @@ fun DeviceOverview(
 
         AnimatedVisibility(visible = !uiState.loadingApps, enter = fadeIn(), exit = fadeOut()) {
 
-            var appSets = viewModel.getAppSetSizes(showNoReportApps)
+            var appSets = remember {
+                viewModel.getAppSetSizes(showNoReportApps)
+            }
             val defaultColors = getDefaultColorsFromTheme(showNoReportApps)
-            appSets = appSets.mapIndexed { index, item ->
-                if (item.color == Color.Unspecified) item.color = defaultColors[index]
-                item
+            appSets = remember {
+                appSets.mapIndexed { index, item ->
+                    if (item.color == Color.Unspecified) item.color = defaultColors[index]
+                    item
+                }
             }
             LazyColumn(
                 Modifier.paddingFromBaseline(top = 30.dp),
@@ -174,9 +179,11 @@ data class DeviceOverviewUIState(
 
 @Composable
 fun getDefaultColorsFromTheme(showNoReportApps: Boolean): List<Color> {
-    var colors = listOf(
-        noReportScoreColor, unacceptableScoreColor, questionableScoreColor, acceptableScoreColor
-    )
+    var colors = remember {
+        listOf(
+            noReportScoreColor, unacceptableScoreColor, questionableScoreColor, acceptableScoreColor
+        )
+    }
     if (!showNoReportApps) colors = colors.drop(1)
     return colors
 }
