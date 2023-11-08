@@ -25,4 +25,10 @@ interface AppXTrackerDao {
     @Transaction
     @Query("SELECT * FROM Tracker")
     suspend fun getTrackersWithApps(): List<TrackerWithApps>
+
+    @Update
+    suspend fun updateMentions(appXTracker: AppXTracker)
+
+    @Query("SELECT COUNT(*) FROM AppXTracker WHERE packageName = :packageName AND mentions = 1")
+    fun getMentionedTrackersCount(packageName: String): Int
 }

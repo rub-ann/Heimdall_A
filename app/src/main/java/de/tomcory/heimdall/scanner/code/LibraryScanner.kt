@@ -33,7 +33,7 @@ class LibraryScanner private constructor(val trackers: List<Tracker>) {
             val className = dexClass.packageName
             if (className.length >= shortestSignatureLength && className.contains(".")) {
                 trackerTrie.search(className)?.let {
-                    if(containedTrackers.add(AppXTracker(packageInfo.packageName, it.id))) {
+                    if(containedTrackers.add(AppXTracker(packageInfo.packageName, it.id,false))) {
                         Timber.d("Found tracker: %s", it.name)
                     }
                 }

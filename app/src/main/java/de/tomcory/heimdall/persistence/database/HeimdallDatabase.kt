@@ -28,7 +28,7 @@ import de.tomcory.heimdall.persistence.database.entity.Session
 import de.tomcory.heimdall.persistence.database.entity.Tracker
 
 @Database(
-    version = 6,
+    version = 7,
     entities = [
         App::class,
         AppXPermission::class,

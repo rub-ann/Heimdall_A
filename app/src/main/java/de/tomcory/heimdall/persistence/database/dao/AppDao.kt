@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
 import de.tomcory.heimdall.persistence.database.entity.App
+import de.tomcory.heimdall.persistence.database.entity.AppWithTrackers
 import de.tomcory.heimdall.persistence.database.entity.Report
 import kotlinx.coroutines.flow.Flow
 
@@ -40,6 +41,10 @@ interface AppDao {
     @Transaction
     @Query("SELECT * FROM App")
     fun getAllAppWithReportsObservable(): Flow<List<AppWithReports>>
+
+    @Transaction
+    @Query("SELECT * FROM App WHERE packageName = :packageName")
+    suspend fun getAppWithTrackersFromPackageName(packageName: String): AppWithTrackers
 
 }
 

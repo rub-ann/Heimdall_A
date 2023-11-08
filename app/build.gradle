@@ -216,4 +216,8 @@ dependencies {
     androidTestImplementation "androidx.test:rules:$test_version"
     androidTestImplementation "androidx.test.espresso:espresso-core:3.5.1"
     testImplementation "org.robolectric:robolectric:4.8"
+
+    //html scraper library used for fetching privacy policy text
+    implementation 'org.jsoup:jsoup:1.14.3'
+
 }
