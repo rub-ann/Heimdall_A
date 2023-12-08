@@ -22,12 +22,10 @@ import androidx.compose.ui.platform.LocalContext
 import de.tomcory.heimdall.evaluator.ModuleResult
 import de.tomcory.heimdall.persistence.database.HeimdallDatabase
 import de.tomcory.heimdall.persistence.database.entity.App
-import de.tomcory.heimdall.persistence.database.entity.AppXTracker
 import de.tomcory.heimdall.persistence.database.entity.Report
 import de.tomcory.heimdall.persistence.database.entity.SubReport
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -146,6 +144,7 @@ class PrivacyPolicyScore_deprecated : Module() {
 
     suspend fun appMentionsTrackersInPolicy(context: Context, app:App, text:String): Float{
         val trackers = HeimdallDatabase.instance?.appDao?.getAppWithTrackersFromPackageName(app.packageName)?.trackers
+        var mentionedTrackers= 0
         Timber.e("---------${app.packageName} trackers: "+trackers.toString())
         listYes=mutableListOf<String>()
         listNo= mutableListOf<String>()
@@ -157,8 +156,8 @@ class PrivacyPolicyScore_deprecated : Module() {
                 firstWord=tracker.name.split(" ")[0]
                 if (text.contains(tracker.name)){
                     listYes.add(tracker.name)
-                    val appXTracker = AppXTracker(app.packageName, tracker.id, true)
-                    HeimdallDatabase.instance?.appXTrackerDao?.updateMentions(appXTracker)
+                    mentionedTrackers++
+                    //HeimdallDatabase.instance?.appXTrackerDao?.updateMentions(appXTracker)
                 }
                 else if (text.contains(firstWord)) {
                     listNo.add(tracker.name)
@@ -170,7 +169,7 @@ class PrivacyPolicyScore_deprecated : Module() {
         listFirstWord= listFirstWord.distinct().toMutableList()
 
         var totalTrackers= HeimdallDatabase.instance?.appDao?.getAppWithTrackersFromPackageName(app.packageName)?.trackers?.size
-        var mentionedTrackers= HeimdallDatabase.instance?.appXTrackerDao?.getMentionedTrackersCount(app.packageName)
+        //HeimdallDatabase.instance?.appXTrackerDao?.getMentionedTrackersCount(app.packageName)
         var percentOfMentionedTrackers=111.0f
         var shortened="!"
         if(mentionedTrackers!=null && totalTrackers!=null && totalTrackers!=0 ){
@@ -209,17 +208,17 @@ class PrivacyPolicyScore_deprecated : Module() {
         return percentOfMentionedTrackers.toFloat()
     }
 
-    fun loadSubReportFromDB(report: Report): PolicyInfo {
+    fun loadSubReportFromDB(report: Report): PolicyTrackerInfo {
         val rep= HeimdallDatabase.instance?.subReportDao?.getSubReportsByPackageNameAndModule(
                 report.appPackageName,
                 name
         )
-        var obj:PolicyInfo
+        var obj: PolicyTrackerInfo
         if (rep!=null){
-            obj= Json.decodeFromString<PolicyInfo>(rep.additionalDetails)
+            obj= Json.decodeFromString<PolicyTrackerInfo>(rep.additionalDetails)
             return obj
         }else {
-            return PolicyInfo(0f, listOf("idk"), listOf("idk"))
+            return PolicyTrackerInfo(listOf(),listOf(),listOf(),listOf())
         }
 
     }
@@ -238,7 +237,7 @@ class PrivacyPolicyScore_deprecated : Module() {
 
     @Composable
     fun PrivacyPolicyUICard(report: Report?, context: Context) {
-        var subreport: PolicyInfo by remember { mutableStateOf(PolicyInfo(0f, listOf<String>("idk"), listOf<String>("idk"))) }
+        var subreport: PolicyTrackerInfo by remember { mutableStateOf(PolicyTrackerInfo(listOf(),listOf(),listOf(),listOf())) }
         var loadingSubReport by remember { mutableStateOf(true) }
 
         LaunchedEffect(key1 = 2, block = {
@@ -258,14 +257,14 @@ class PrivacyPolicyScore_deprecated : Module() {
                 exit = slideOutVertically()
         ) {
             Column {
-                Text("App mentions " +subreport.score.toString()+" of trackers in its policy")
-
-                if (subreport.mentionedTrackers.isNotEmpty()){
-                    Text("Specifically " + subreport.mentionedTrackers)
-                }
-                if (subreport.mentionedEntities.isNotEmpty()){
-                    Text("Additionally, following entities are mentioned in the policy: " + subreport.mentionedEntities)
-                }
+//                Text("App mentions " +subreport.score.toString()+" of trackers in its policy")
+//
+//                if (subreport.mentionedTrackers.isNotEmpty()){
+//                    Text("Specifically " + subreport.mentionedTrackers)
+//                }
+//                if (subreport.mentionedEntities.isNotEmpty()){
+//                    Text("Additionally, following entities are mentioned in the policy: " + subreport.mentionedEntities)
+//                }
 
             }
 

@@ -12,8 +12,6 @@ data class AppXTracker(
     val packageName: String,
     @ColumnInfo(index = true, name = "id")
     val trackerId: Int,
-    @ColumnInfo(defaultValue = "false")
-    var mentions: Boolean
 )
 
 data class AppWithTrackers(

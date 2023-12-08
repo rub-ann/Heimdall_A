@@ -220,4 +220,9 @@ dependencies {
     //html scraper library used for fetching privacy policy text
     implementation 'org.jsoup:jsoup:1.14.3'
 
+    //to parse json files
+    implementation 'com.google.code.gson:gson:2.8.9'
+
+
+
 }
