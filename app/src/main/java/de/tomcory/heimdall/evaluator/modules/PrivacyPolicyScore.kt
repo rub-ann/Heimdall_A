@@ -60,9 +60,9 @@ import java.util.Locale
 class PrivacyPolicyScore : Module() {
     override val name: String= "PrivacyPolicyScore"
     val label = "Privacy Policy"
-    var successCounter:Int=0
-    var failureCounter:Int=0
-    var failureDump:String=""
+//    var successCounter:Int=0
+//    var failureCounter:Int=0
+//    var failureDump:String=""
 
     override suspend fun calculateOrLoad(app: App, context: Context, forceRecalculate: Boolean): Result<ModuleResult> {
 
@@ -148,8 +148,8 @@ class PrivacyPolicyScore : Module() {
 
         }
         catch (e: Exception) {
-            failureCounter++
-            failureDump+="${packageName} " + e.message+"\n"
+//            failureCounter++
+//            failureDump+="${packageName} " + e.message+"\n"
 
             return PolicyTextInfo(
                     packageName = packageName,
@@ -181,7 +181,7 @@ class PrivacyPolicyScore : Module() {
 
     fun getCombinations(trackerName:String): List<String>{
         val blackList: List<String> = listOf("analytics", "login", "ads", "share", "mobile", "services", "and" , "tag", "manager"
-                , "location", "advertisement", "ad", "app", "center", "open", "marketing")
+                , "location", "advertisement", "ad", "app", "center", "open", "marketing", "measurement")
 
         val words = trackerName.split(" ")
         val combinations = mutableListOf<String>()
@@ -220,6 +220,9 @@ class PrivacyPolicyScore : Module() {
 
         var firstWord=""
         if (trackers.isNotEmpty()) {
+            var fullMention=false
+            var partMentioned=false
+            var parentMentioned=false
             for (tracker in trackers){
                 val pattern = Regex("\\b${Regex.escape(tracker.name)}\\b", RegexOption.IGNORE_CASE)
 
@@ -227,26 +230,30 @@ class PrivacyPolicyScore : Module() {
                 if (text.contains(pattern)){
                     listYes.add(tracker.name)
                     mentionedTrackers++
-
+                    fullMention=true
                 }else{
-                    listCombinations.addAll(checkCombinations(tracker.name, text))
+                    val combis=checkCombinations(tracker.name, text)
+                    if (combis.isNotEmpty())
+                        partMentioned=true
+                    listCombinations.addAll(combis)
                 }
-                //if direct name or its combinations not mentioned, look for (root)parents instead
-                if (listYes.isEmpty() && listCombinations.isEmpty()){
+
+                if (!fullMention && !partMentioned){
                     for (combi in getCombinations(tracker.name)){
                         var resultOneCombi= findInXrayJSON(combi,context)
                         if (resultOneCombi.isNotEmpty()) {
                             for (knownParent in resultOneCombi){
                                 if (text.contains(Regex("\\b${Regex.escape(knownParent)}\\b", RegexOption.IGNORE_CASE))){
                                     listParent.add(knownParent)
+                                    parentMentioned=true
                                 }
                             }
                             Timber.e(combi+" | ${resultOneCombi}")
                         }
                     }
-
                 }
-                if(listYes.isEmpty()&& listCombinations.isEmpty() && listParent.isEmpty()) listNo.add(tracker.name)
+
+                if(!fullMention && !partMentioned && !parentMentioned) listNo.add(tracker.name)
             }
         }
         listCombinations= listCombinations.distinct().toMutableList()
@@ -263,36 +270,36 @@ class PrivacyPolicyScore : Module() {
             shortened= String.format("%.2f", shareOfMentionedTrackers)
         }
 
-        //write info to file for monitoring purposes
-        try {
-            val fileOutputStream: FileOutputStream = context.openFileOutput("appWithTrackers.txt", Context.MODE_APPEND)
-            val outputStreamWriter = OutputStreamWriter(fileOutputStream)
-            outputStreamWriter.write("\n"+LocalDateTime.now().toString()+" on "+ Build.MODEL+"\n")
-            outputStreamWriter.write((++successCounter).toString() +"+--------"+app.label+" | "+app.packageName+"\n")
-            outputStreamWriter.write("${app.packageName} mentions "+shortened+ "% (${mentionedTrackers}) "+ "of ${totalTrackers} trackers in policy"+"\n")
-            outputStreamWriter.write("all TRACKERS:" + trackerNames+"\n")
-            outputStreamWriter.write("MENTIONS NAME OF TRACKERS:" + listYes.toString()+"\n")
-            outputStreamWriter.write("NOT MENTIONS NAME OF TRACKERS:" + listNo.toString()+"\n")
-            outputStreamWriter.write("MENTIONS COMBINATIONS OF TRACKER NAME(${listCombinations.size}):" + listCombinations.toString()+"\n")
-            outputStreamWriter.write("XRAY PARENT SEARCH(${listParent.size}):" + listParent.toString()+"\n")
-            outputStreamWriter.write("${failureCounter} FAILURES:" + failureDump +"\n")
-            outputStreamWriter.close()
-
-            val fileOutputStream1: FileOutputStream = context.openFileOutput("policy.txt", Context.MODE_APPEND)
-            val outputStreamWriter1 = OutputStreamWriter(fileOutputStream1)
-            outputStreamWriter1.write("\n"+LocalDateTime.now().toString()+" on "+ Build.MODEL+"\n")
-            outputStreamWriter1.write("--------"+app.label+" | "+app.packageName+"\n")
-            var yes= findSentence(listYes,text)
-            outputStreamWriter1.write("MENTIONS NAME OF TRACKERS: "+ (if (yes.isEmpty()) "none" else "\n"+yes) +"\n")
-            var c= findSentence(listCombinations,text)
-            outputStreamWriter1.write("MENTIONS COMBINATIONS:"+(if (c.isEmpty()) "none" else "\n"+c)+"\n")
-            var p=findSentence(listParent,text)
-            outputStreamWriter1.write("MENTIONS PARENT:"+(if (p.isEmpty()) "none" else "\n"+p)+"\n")
-            outputStreamWriter1.close()
-
-        } catch (e: Exception) {
-            Timber.e("something wrong with writing to file in Policy: ${e.message}")
-        }
+        //write info to file for testing purposes
+//        try {
+//            val fileOutputStream: FileOutputStream = context.openFileOutput("appWithTrackers.txt", Context.MODE_APPEND)
+//            val outputStreamWriter = OutputStreamWriter(fileOutputStream)
+//            outputStreamWriter.write("\n"+LocalDateTime.now().toString()+" on "+ Build.MODEL+"\n")
+//            outputStreamWriter.write((++successCounter).toString() +"+--------"+app.label+" | "+app.packageName+"\n")
+//            outputStreamWriter.write("${app.packageName} mentions "+shortened+ "% (${mentionedTrackers}) "+ "of ${totalTrackers} trackers in policy"+"\n")
+//            outputStreamWriter.write("all TRACKERS:" + trackerNames+"\n")
+//            outputStreamWriter.write("MENTIONS NAME OF TRACKERS:" + listYes.toString()+"\n")
+//            outputStreamWriter.write("NOT MENTIONS NAME OF TRACKERS:" + listNo.toString()+"\n")
+//            outputStreamWriter.write("MENTIONS COMBINATIONS OF TRACKER NAME(${listCombinations.size}):" + listCombinations.toString()+"\n")
+//            outputStreamWriter.write("XRAY PARENT SEARCH(${listParent.size}):" + listParent.toString()+"\n")
+//            outputStreamWriter.write("${failureCounter} FAILURES:" + failureDump +"\n")
+//            outputStreamWriter.close()
+//
+//            val fileOutputStream1: FileOutputStream = context.openFileOutput("policy.txt", Context.MODE_APPEND)
+//            val outputStreamWriter1 = OutputStreamWriter(fileOutputStream1)
+//            outputStreamWriter1.write("\n"+LocalDateTime.now().toString()+" on "+ Build.MODEL+"\n")
+//            outputStreamWriter1.write("--------"+app.label+" | "+app.packageName+"\n")
+//            var yes= findSentence(listYes,text)
+//            outputStreamWriter1.write("MENTIONS NAME OF TRACKERS: "+ (if (yes.isEmpty()) "none" else "\n"+yes) +"\n")
+//            var c= findSentence(listCombinations,text)
+//            outputStreamWriter1.write("MENTIONS COMBINATIONS:"+(if (c.isEmpty()) "none" else "\n"+c)+"\n")
+//            var p=findSentence(listParent,text)
+//            outputStreamWriter1.write("MENTIONS PARENT:"+(if (p.isEmpty()) "none" else "\n"+p)+"\n")
+//            outputStreamWriter1.close()
+//
+//        } catch (e: Exception) {
+//            Timber.e("something wrong with writing to file in Policy: ${e.message}")
+//        }
 
         return PolicyTrackerInfo(
                 trackerNames,
@@ -302,20 +309,6 @@ class PrivacyPolicyScore : Module() {
         )
     }
 
-    fun findSentence(names: List<String>, text: String): List<String> {
-        val sentences = text.split(Regex("[.!?]"))
-        val result = mutableListOf<String>()
-        for (name in names){
-            for (sentence in sentences) {
-                if (sentence.contains(Regex("\\b${Regex.escape(name)}\\b", RegexOption.IGNORE_CASE))) {
-                    result.add(name+" : " +sentence.trim()+"\n")
-                }
-            }
-        }
-
-
-        return result.toList()
-    }
 
     fun loadSubReportFromDB(report: Report): FullPolicyInfo {
         val rep= HeimdallDatabase.instance?.subReportDao?.getSubReportsByPackageNameAndModule(
@@ -363,7 +356,7 @@ class PrivacyPolicyScore : Module() {
         //todo numbers formatting
         val scorePercent=if ((percent*100)>=10) (percent*100).toString().substring(0,2) else (percent*100).toString().substring(0,1)   //if ((percent*100)<10)  ((percent*100).toString().substring(0,3) + "%") else  ((percent*100).toString().substring(0,4) + "%")
         val scorePercent1=if ((percent1*100)>=10) (percent1*100).toString().substring(0,2) else (percent1*100).toString().substring(0,1)  //if ((percent1*100)<10)  ((percent1*100).toString().substring(0,3) + "%") else  ((percent1*100).toString().substring(0,4) + "%")
-        val scorePercent2= if ((percent2*100)>=10) (percent1*100).toString().substring(0,2) else (percent2*100).toString().substring(0,1)  //if ((percent2*100)<10)  ((percent2*100).toString().substring(0,3) + "%") else  ((percent2*100).toString().substring(0,4) + "%")
+        val scorePercent2= if ((percent2*100)>=10) (percent2*100).toString().substring(0,2) else (percent2*100).toString().substring(0,1)  //if ((percent2*100)<10)  ((percent2*100).toString().substring(0,3) + "%") else  ((percent2*100).toString().substring(0,4) + "%")
 
 
         LaunchedEffect(key1 = 2, block = {
@@ -394,13 +387,13 @@ class PrivacyPolicyScore : Module() {
                     }
 
                     if (subreport.partiallyMentionedTrackers.isNotEmpty()){
-                        Text("Following combinations of the tracker's full name are mentioned in the policy ( $scorePercent1% of all trackers):\n"
+                        Text("Following combinations of the tracker's full name are mentioned in the policy:\n"
                                 + subreport.partiallyMentionedTrackers.toString().substring(1,subreport.partiallyMentionedTrackers.toString().length-1))
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     if (subreport.mentionedParents.isNotEmpty()){
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Following combinations of the tracker's full name are mentioned in the policy ( $scorePercent2% of all trackers):\n"
+                        Text("Following combinations of the tracker's full name are mentioned in the policy:\n"
                                 + subreport.mentionedParents.toString().substring(1,subreport.mentionedParents.toString().length-1))
                     }
                     if (subreport.mentionedParents.isEmpty() && subreport.partiallyMentionedTrackers.isEmpty() && subreport.fullyMentionedTrackers.isEmpty()){
@@ -453,7 +446,7 @@ class PrivacyPolicyScore : Module() {
             if (current.isNotEmpty()) {
                 current[0].parent?.let { result.add(it) }
                 current[0].root_parent?.let { result.add(it) }
-                if (result.isNotEmpty()) Timber.e("found parent for ${name} : $result")
+                //if (result.isNotEmpty()) Timber.e("found parent for ${name} : $result")
                 return result
             } else return mutableListOf()
 
@@ -466,7 +459,23 @@ class PrivacyPolicyScore : Module() {
 
     }
 
+    fun findSentence(names: List<String>, text: String): List<String> {
+        val sentences = text.split(Regex("[.!?]"))
+        val result = mutableListOf<String>()
+        for (name in names){
+            for (sentence in sentences) {
+                if (sentence.contains(Regex("\\b${Regex.escape(name)}\\b", RegexOption.IGNORE_CASE))) {
+                    result.add(name+" : " +sentence.trim()+"\n")
+                }
+            }
+        }
+
+
+        return result.toList()
+    }
 }
+
+
 
 @Serializable
 data class Entry(
